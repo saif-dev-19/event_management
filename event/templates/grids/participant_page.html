@@ -1,0 +1,38 @@
+    {% extends "dashboard/dashboard.html" %} 
+    
+    {% block title %}Event Dashboard{% endblock title %}
+    
+    {% block event %}
+
+      {% comment %} events {% endcomment %}
+        <div class=" bg-white rounded-xl shadow-sm">
+                <div class=" grid grid-cols-2 border-b border-black text-lg text-black">
+                        <div>Names</div>
+                        <div>Events</div>
+                </div>
+        </div>
+        {% for participant in result %}
+        <div class="border rounded-md border-black text-lg text-black">
+            <div class="divide-y divide-gray-100">
+         <div class="grid grid-cols-4 p-4 gap-4 items-center">
+            <div class="flex items-center gap-2">
+                    <span>{{participant.name}}</span>
+                    
+            </div>
+            
+            <div class="grid grid-cols-1 ">
+                 <a href='{% url "update-event" participant.id %}' class="px-2 py-1 bg-green-500">Edit</a>
+                {% for event in participant.event.all %}
+                    <div >{{event.name }}</div>
+                {% endfor %}    
+            </div>
+         </div>
+        </div>
+        </div>
+        {% endfor %}
+        
+        
+
+        
+
+    {% endblock event %} 
