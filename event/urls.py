@@ -12,5 +12,5 @@ urlpatterns = [
     path("delete-event/<int:id>/",delete_event,name="delete-event"),
     path("home-page/",home_page,name="home-page"),
     path("participant-page/",participant_page,name="participant-page"),
-    
+    path('', home_page, name='home-page'),
 ]
