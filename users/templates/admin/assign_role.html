@@ -1,0 +1,11 @@
+{% extends "admin/dashboard.html" %}
+
+{% block content %}
+    <div class="w-1/2 mx-auto my-5">
+        <form action="" method="POST">
+            {% csrf_token %}
+            {{form.as_p}}
+            <button type="submit" class=" px-2 py-1 text-white bg-blue-500 rounded">Assign Role</button>
+        </form>
+    </div>
+{% endblock content %}

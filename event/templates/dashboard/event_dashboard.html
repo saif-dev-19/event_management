@@ -6,66 +6,43 @@
 
       {% comment %} events {% endcomment %}
 
-      <div class="items-center">
+      <div class="items-center ">
             <form method="GET" action="">
                 <input type="text" name="name" placeholder="Search by name"  class="border border-black rounded-md">
                 <button type="submit">Search</button>
             </form>
-        </div>
-        {% if type == 'participants' %}
-            <div class=" bg-white rounded-xl shadow-sm">
+        </div >
+        
+            <div class="mt-5 bg-white rounded-xl shadow-sm">
                 <div class=" grid grid-cols-2 border-b border-black text-lg text-black">
-                        <div class="font-semibold p-3">Names</div>
                         <div class="font-semibold p-3">Events</div>
                 </div>
-        </div>
-            {% for participant in result %}
-        <div class="border rounded-md border-black text-lg text-black">
-            <div class="divide-y divide-gray-100">
-         <div class="grid grid-cols-2 p-4 gap-4 items-center">
-            <div class="flex items-center gap-2">
-                    <span>{{participant.name}}</span>
-                    
-            </div>
-            
-            <div class="grid grid-cols-1 ">
-                {% for event in participant.event.all %}
-                    <div >{{event.name }}</div>
-                {% endfor %}    
-            </div>
-         </div>
-        </div>
-        </div>
-        {% endfor %}
+            </div >
+        
+        <div class="mb-9">
+                {% for event in result %}
+                    <div class="border rounded-md border-black text-lg text-black">
+                    <div class="divide-y divide-gray-100">
+                <div class="grid grid-cols-2 p-4 gap-2">
+                    <div class=" items-center gap-2">
+                        <a class="text-black font-semibold" href="{% url 'event-detials' event.id %}">{{event.name}}</a>
+                            
+                    </div>
+                    {% if type == "upcoming" or type == "all" %}
+                        <div>
+                            <form action="{% url 'rspv-event' event.id %}" method="POST">
+                                {% csrf_token %}
+                                <button class="px-2 py-1 bg-blue-500 text-white">RSVP</button>
+                            </form>
+                        
+                        </div>
 
-        {% else %}
-            <div class=" bg-white rounded-xl shadow-sm">
-                <div class=" grid grid-cols-2 border-b border-black text-lg text-black">
-                        <div class="font-semibold p-3">Events</div>
+                    {% endif %}
                 </div>
+                </div>
+                </div>
+                {% endfor %}
         </div>
-        {% for event in result %}
-        <div class="border rounded-md border-black text-lg text-black">
-            <div class="divide-y divide-gray-100">
-         <div class="grid grid-cols-2 p-4 gap-2">
-             <div class=" items-center gap-2">
-                    <span class="text-black font-semibold">{{event.name}}</span>
-                    
-            </div>
-            <div class="grid grid-cols-2 ">
-                <div><a href='{% url "update-event" event.id %}' class="py-2 p-2 items-center bg-green-500 rounded-md">Edit</a> </div>
-                <div class="">
-                    <form action='{% url "delete-event" event.id %}' method="POST">
-                        {% csrf_token %}
-                        <button class="px-2 py-1 bg-red-500 rounded-md">Delete</button>
-                </form>
-                </div> 
-            </div>
-         </div>
-        </div>
-        </div>
-        {% endfor %}
-        {% endif %}
         
         
 

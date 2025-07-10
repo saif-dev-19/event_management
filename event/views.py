@@ -6,10 +6,18 @@ from django.contrib import messages
 from django.db.models import Q,Count
 from datetime import datetime,date
 from django.utils.timezone import localdate
-
+from users.views import is_organizer,is_admin
+from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required,user_passes_test,permission_required
+from django.core.mail import send_mail
+from django.conf import settings
 # Create your views here.
+
+def is_users(user):
+    return user.groups.filter(name = 'User').exists()
+
 def home_page(request):
-    return render(request,"dashboard/home_page.html")
+    return render(request,"home_page.html")
 
 def participant_page(request):
     return render(request,"grids/participant_page.html")
@@ -17,12 +25,22 @@ def participant_page(request):
 def show_event(request):
     return HttpResponse("Events")
 
-def event_dashboard(request):
+@user_passes_test(is_organizer,login_url="no-permission")
+def organizer_dashboard(request):
+    events = Event.objects.prefetch_related('participants').all()
+    for e in events:
+        event = e
+    return render(request,"dashboard/organizer_dashboard.html",{'events':events,'event':event})
+
+
+@user_passes_test(is_users,login_url="no-permission")
+def user_dashboard(request):
     type = request.GET.get('type','all')
 
     cr_day = datetime.now().date()
     events = Event.objects.prefetch_related('participants').all()
-    participant = Participant.objects.all()
+    participant = User.objects.all()
+    print(participant)
 
     search_name= request.GET.get('name')
     search_location =request.GET.get('location')
@@ -46,7 +64,7 @@ def event_dashboard(request):
     elif type == "past":
         result = events.filter(date__lte=cr_day)
     else:
-        result = events
+        result = events.filter(date__gte=cr_day)
 
     
 
@@ -62,19 +80,23 @@ def event_dashboard(request):
         'result' : result,
         'type':type,
         'search_name' : search_name,
-        'search_location' : search_location
+        'search_location' : search_location,
+        'role' : 'user'
 
     }
+    print(result)
+    print(counts)
 
     return render(request,"dashboard/event_dashboard.html",context)
 
+    
 
-
+@user_passes_test(is_admin,login_url="no-permission")
 def create_event(request):
     event_form = EventModelForm()
 
     if request.method == "POST":
-        event_form = EventModelForm(request.POST)
+        event_form = EventModelForm(request.POST,request.FILES)
         print("inside post")
         if event_form.is_valid():
             event_form.save()
@@ -90,24 +112,19 @@ def create_event(request):
     return render(request,"event_form.html",context)
 
 
+@user_passes_test(is_admin,login_url="no-permission")
+@user_passes_test(is_organizer,login_url="no-permission")
 def update_event(request,id):
     event = Event.objects.get(id = id)
     event_form = EventModelForm(instance = event)
 
-    if event.category:
-        category_form = CategoryForm(instance = event.category)
 
     if request.method == "POST":
         event_form = EventModelForm(request.POST,instance = event)
-        category_form = CategoryForm(request.POST,instance = event.category)
 
-        if event_form.is_valid() and category_form.is_valid():
+        if event_form.is_valid():
             
-            
-            event = event_form.save()
-            category = category_form.save(commit=False)
-            event.category = category
-            category.save()
+            event_form.save()
 
             if messages.success:
                 messages.success(request,"Event updated Successfully")
@@ -116,21 +133,25 @@ def update_event(request,id):
                 messages.error(request,"something wrong")
                 return redirect("update-event")
         
-    context = {"event_form":event_form,"category_form":category_form}
+    context = {"event_form":event_form}
     return render(request,"event_form.html",context)
 
+
+@user_passes_test(is_organizer,login_url="no-permission")
 def delete_event(request,id):
     if request.method == "POST":
         event = Event.objects.get(id=id)
         event.delete()
         messages.success(request,"Event Delete Successfully")
-        return redirect('event-dashboard')
+        return redirect('organizer-dashboard')
     else:
         messages.error(request,"something went wrong")
-        return redirect('event-dashboard')
+        return redirect('organizer-dashboard')
 
 
 
+
+@user_passes_test(is_organizer,login_url="no-permission")
 def create_category(request):
     category_form = CategoryForm()
 
@@ -140,7 +161,7 @@ def create_category(request):
             category_form.save()
 
             if messages.success:
-                messages.success(request,"Event Created Successfully")
+                messages.success(request,"Category Created Successfully")
                 return redirect("create-category")
             elif messages.error:
                 messages.error(request,"something wrong")
@@ -172,3 +193,40 @@ def create_participant(request):
 
     context = {"participant_form":participant_form}
     return render(request,"create_participant.html",context)
+
+@login_required
+def event_detials(request,event_id):
+    event = Event.objects.get(id = event_id)
+    return render(request,"event_detials.html",{"event":event})
+
+
+
+def dashboard(request):
+    if is_organizer(request.user):
+        return redirect('organizer-dashboard')
+    elif is_users(request.user):
+        return redirect('event-dashboard')
+    elif is_admin(request.user):
+        return redirect('admin-dashboard')
+
+    return redirect('no-permission')     
+
+
+
+@login_required
+def rspv_event(request,event_id):
+    event = Event.objects.get(id = event_id)
+
+    if request.user in event.rspv.all():
+        messages.success(request,"you have already rspv to this event")
+    else:
+        event.rspv.add(request.user)
+        event.save()
+        
+        subject = f"Rspv conformation for {event.name}"
+        message = f"your successfully RSPV for {event.name}"
+        recipient_list = [request.user.email]
+
+        send_mail(subject,message,settings.EMAIL_HOST_USER,recipient_list)
+    
+    return redirect("event-dashboard")

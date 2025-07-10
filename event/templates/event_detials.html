@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+
+{% block title %}{{task.title}}{% endblock title %}
+{% block content %}
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+      <h1 class="text-3xl font-bold mb-6">{{event.name}}</h1>
+
+      <!-- Navigation Tabs -->
+      <div class="flex gap-4 mb-8 border-b">
+        <button
+          class="px-4 py-2 bg-blue-50 text-blue-600 rounded-t-lg flex items-center gap-2"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            ></path>
+          </svg>
+          Event Detail
+        </button>
+        <div class="flex items-center gap-2">
+          <for  m action="" method="POST">
+              {% csrf_token %}
+
+          </form>
+        </div>
+      </div>
+
+        <div class="grid grid-cols-1">
+          <div class="bg-white p-6 rounded-lg shadow-sm">
+            <!-- Creation Date -->
+        <div class="text-gray-600 mb-6">Event Date: {{event.date}} <br> Event Time: {{event.time}}</div>
+        <!-- Sidebar -->
+        <div class="grid grid-cols-2 lg:grid-cols-2">
+          <!-- Task Description -->
+          <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+            <h2 class="text-xl font-bold mb-4">EVENT DESCRIPTION</h2>
+            <p class="text-gray-600">
+              {{event.description}}
+            </p>
+          </div>
+
+          <!-- Assets -->
+          <div class="bg-white p-6 rounded-lg shadow-sm">
+            <h2 class="text-xl font-bold mb-4">ASSETS</h2>
+            <div class="space-y-4">
+              <img
+                src="{{event.asset.url}}"
+                alt="Task Manager App Screenshot 1"
+                class="w-full rounded-lg"
+              />
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+{% endblock content %}
