@@ -90,6 +90,7 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+DOMAIN = "https://event-management-1-wdqj.onrender.com"
 
 # DATABASES = {
 #     'default': {
@@ -163,7 +164,7 @@ EMAIL_PORT = config('EMAIL_PORT')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
-FRONTEND_URL = 'http://127.0.0.1:8000'
+# FRONTEND_URL = 'http://127.0.0.1:8000'
 
 LOGIN_REDIRECT_URL = "/event/dashboard/"
 LOGIN_URL = "/users/sign-in/"
