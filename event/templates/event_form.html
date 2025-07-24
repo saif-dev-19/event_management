@@ -1,9 +1,19 @@
-{% extends "admin/dashboard.html" %}
 
-{% block content %}
-  
 
-     <div class="w-1/2 mx-auto mt-8">
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    </head>
+    <body>
+        <div class="w-1/2 mx-auto mt-8">
         <div>
             {% if messages %}
                 {% for message in messages %}
@@ -17,5 +27,5 @@
             <button type="submit" class="bg-rose-600 px-3 py-2 text-white mt-2 rounded-md">Submit</button>
         </form>
         </div>
-
-{% endblock content %}
+    </body>
+</html>

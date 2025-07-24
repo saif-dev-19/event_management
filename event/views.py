@@ -1,17 +1,21 @@
 from django.shortcuts import render,redirect
 from django.http import HttpResponse
 from event.forms import EventModelForm,CategoryForm,ParticipantForm
-from event.models import Participant,Event
+from event.models import Participant,Event,Category
 from django.contrib import messages
 from django.db.models import Q,Count
 from datetime import datetime,date
 from django.utils.timezone import localdate
 from users.views import is_organizer,is_admin
-from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required,user_passes_test,permission_required
 from django.core.mail import send_mail
 from django.conf import settings
+from django.views.generic import CreateView,UpdateView,DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth import get_user_model
 # Create your views here.
+
+User = get_user_model()
 
 def is_users(user):
     return user.groups.filter(name = 'User').exists()
@@ -24,6 +28,18 @@ def participant_page(request):
 
 def show_event(request):
     return HttpResponse("Events")
+
+@login_required
+def dashboard(request):
+    if is_organizer(request.user):
+        return redirect('manager-dashboard')
+    elif is_users(request.user):
+        return redirect("user-dashboard")
+    elif is_admin(request.user):
+        return redirect("admin-dashboard")
+    
+    return redirect('no-permission')
+
 
 @user_passes_test(is_organizer,login_url="no-permission")
 def organizer_dashboard(request):
@@ -91,11 +107,39 @@ def user_dashboard(request):
 
     
 
-@user_passes_test(is_admin,login_url="no-permission")
-def create_event(request):
-    event_form = EventModelForm()
+# @user_passes_test(is_admin,login_url="no-permission")
+# def create_event(request):
+#     event_form = EventModelForm()
 
-    if request.method == "POST":
+#     if request.method == "POST":
+#         event_form = EventModelForm(request.POST,request.FILES)
+#         print("inside post")
+#         if event_form.is_valid():
+#             event_form.save()
+        
+#             if messages.success:
+#                 messages.success(request,"Event Created Successfully")
+#                 return redirect("create-event")
+#             elif messages.error:
+#                 messages.error(request,"something wrong")
+#                 return redirect("create-event")
+        
+#     context = {"event_form":event_form}
+#     return render(request,"event_form.html",context)
+
+
+class CreateEventView(CreateView):
+    model = Event
+    form_class = EventModelForm
+    template_name = "event_form.html"
+    success_url = reverse_lazy("create-event")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["event_form"] = EventModelForm()
+        return context
+    
+    def post(self, request, *args, **kwargs):
         event_form = EventModelForm(request.POST,request.FILES)
         print("inside post")
         if event_form.is_valid():
@@ -107,20 +151,54 @@ def create_event(request):
             elif messages.error:
                 messages.error(request,"something wrong")
                 return redirect("create-event")
+    
+    
+    
+
+
+
+# @user_passes_test(is_admin,login_url="no-permission")
+# def update_event(request,id):
+#     event = Event.objects.get(id = id)
+#     event_form = EventModelForm(instance = event)
+
+
+#     if request.method == "POST":
+#         event_form = EventModelForm(request.POST,instance = event)
+
+#         if event_form.is_valid():
+            
+#             event_form.save()
+
+#             if messages.success:
+#                 messages.success(request,"Event updated Successfully")
+#                 return redirect("update-event")
+#             elif messages.error:
+#                 messages.error(request,"something wrong")
+#                 return redirect("update-event")
         
-    context = {"event_form":event_form}
-    return render(request,"event_form.html",context)
+#     context = {"event_form":event_form}
+#     return render(request,"event_form.html",context)
 
 
-@user_passes_test(is_admin,login_url="no-permission")
-@user_passes_test(is_organizer,login_url="no-permission")
-def update_event(request,id):
-    event = Event.objects.get(id = id)
-    event_form = EventModelForm(instance = event)
 
+class UpdateEventView(UpdateView):
+    model = Event
+    form_class = EventModelForm
+    context_object_name = "event"
+    pk_url_kwarg = "id"
+    template_name = "event_form.html"
 
-    if request.method == "POST":
-        event_form = EventModelForm(request.POST,instance = event)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["event_form"] = self.get_form() 
+        print("ob",self.get_object())
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        print("ob",self.object)
+        event_form = EventModelForm(request.POST,instance = self.object)
 
         if event_form.is_valid():
             
@@ -128,27 +206,33 @@ def update_event(request,id):
 
             if messages.success:
                 messages.success(request,"Event updated Successfully")
-                return redirect("update-event")
+                return redirect("update-event",id=event_form.id)
             elif messages.error:
                 messages.error(request,"something wrong")
                 return redirect("update-event")
-        
-    context = {"event_form":event_form}
-    return render(request,"event_form.html",context)
 
 
-@user_passes_test(is_organizer,login_url="no-permission")
-def delete_event(request,id):
-    if request.method == "POST":
-        event = Event.objects.get(id=id)
-        event.delete()
+
+# @user_passes_test(is_organizer,login_url="no-permission")
+# def delete_event(request,id):
+#     if request.method == "POST":
+#         event = Event.objects.get(id=id)
+#         event.delete()
+#         messages.success(request,"Event Delete Successfully")
+#         return redirect('organizer-dashboard')
+#     else:
+#         messages.error(request,"something went wrong")
+#         return redirect('organizer-dashboard')
+
+
+class DeleteEventView(DeleteView):
+    model = Event
+    pk_url_kwarg = "id"
+    success_url = reverse_lazy("dashboard")
+
+    def delete(self, request, *args, **kwargs):
         messages.success(request,"Event Delete Successfully")
-        return redirect('organizer-dashboard')
-    else:
-        messages.error(request,"something went wrong")
-        return redirect('organizer-dashboard')
-
-
+        return super().delete(request, *args, **kwargs)
 
 
 @user_passes_test(is_organizer,login_url="no-permission")
@@ -166,33 +250,53 @@ def create_category(request):
             elif messages.error:
                 messages.error(request,"something wrong")
                 return redirect("create-category")
-
-
     context = {"category_form":category_form}
     return render(request,"category_form.html",context)
 
 
 
-def create_participant(request):
-    participant_form = ParticipantForm()
+class CreateCategoryEvent(CreateView):
+    model = Category
+    form_class = CategoryForm
+    template_name = "category_form.html"
+    success_url = reverse_lazy("create-category")
 
-    if request.method == "POST":
-        participant_form = ParticipantForm(request.POST)
-        print("inside post")
-
-        if participant_form.is_valid():
-            participant_form.save()
+    def post(self, request, *args, **kwargs):
+        category_form = CategoryForm(request.POST)
+        if category_form.is_valid():
+            category_form.save()
 
             if messages.success:
-                messages.success(request,"Event Created Successfully")
-                return redirect("create-participant")
+                messages.success(request,"Category Created Successfully")
+                return redirect("create-category")
             elif messages.error:
                 messages.error(request,"something wrong")
-                return redirect("create-participant")
+                return redirect("create-category")
 
 
-    context = {"participant_form":participant_form}
-    return render(request,"create_participant.html",context)
+
+
+
+# def create_participant(request):
+#     participant_form = ParticipantForm()
+
+#     if request.method == "POST":
+#         participant_form = ParticipantForm(request.POST)
+#         print("inside post")
+
+#         if participant_form.is_valid():
+#             participant_form.save()
+
+#             if messages.success:
+#                 messages.success(request,"Event Created Successfully")
+#                 return redirect("create-participant")
+#             elif messages.error:
+#                 messages.error(request,"something wrong")
+#                 return redirect("create-participant")
+
+
+#     context = {"participant_form":participant_form}
+#     return render(request,"create_participant.html",context)
 
 @login_required
 def event_detials(request,event_id):

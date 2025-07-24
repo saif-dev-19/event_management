@@ -49,10 +49,15 @@
                 id="user-menu"
                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden"
               >
-                <a
+              <a
                   href="{% url "admin-dashboard" %}"
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >Dashboard</a
+                >
+                <a
+                  href="{% url "profile" %}"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >Profile</a
                 >
                 <form method="POST" action="{% url "logout" %}">
                     {% csrf_token %}

@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect,HttpResponse
 from django.contrib.auth.forms import UserCreationForm
-from users.forms import RegistrationForm,CustomRegistrationForm,AssignRoleForm,CreateGroupForm
-from django.contrib.auth.models import User,Group
+from users.forms import RegistrationForm,CustomPasswordResetConfirmForm,EditProfileForm,CustomPasswordResetForm,CustomRegistrationForm,AssignRoleForm,CreateGroupForm,CustomPasswordChangeForm
+from django.contrib.auth.models import Group
 from django.contrib.auth import login,authenticate,logout
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
@@ -12,9 +12,80 @@ from event.models import Event,Participant
 from django.db.models import Prefetch
 from event.forms import EventModelForm
 from django.contrib.auth.decorators import login_required,user_passes_test
+from django.contrib.auth.views import LoginView,PasswordChangeView
+from django.views.generic import TemplateView,UpdateView
+from django.urls import reverse_lazy
+from django.contrib.auth.views import PasswordResetView,PasswordResetConfirmView
+from django.contrib.auth import get_user_model
 # Create your views here.
 
-#test for users
+
+User = get_user_model()
+
+class ProfileView(TemplateView):
+    template_name = "accounts/profile.html"
+
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        user = self.request.user
+
+        context['username'] = user.username
+        context['email'] = user.email
+        context['name'] = user.get_full_name()
+        context['number'] = user.number
+        context['profile_image'] = user.profile_image
+        context['member_since'] = user.date_joined
+        context['last_login'] = user.last_login
+
+        return context
+    
+
+class EditProfileView(UpdateView):
+    model = User
+    form_class = EditProfileForm
+    template_name = 'accounts/update_profile.html'
+    context_object_name = 'form'
+
+    def get_object(self):
+        return self.request.user
+    
+    def form_valid(self,form):
+        form.save()
+        return redirect('profile')
+    
+
+
+class ChangePassword(PasswordChangeView):
+    template_name = "accounts/password_change.html"
+    form_class = CustomPasswordChangeForm
+
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = "registration/reset_password.html"
+    success_url = reverse_lazy("sign-in")
+    html_email_template_name = "registration/reset_email.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['protocol'] = 'https' if self.request.is_secure() else 'http'
+        context['domain'] = self.request.get_host()
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request,'A reset email send to your mail')
+        return super().form_valid(form)
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    form_class = CustomPasswordResetConfirmForm
+    template_name = "registration/reset_password.html"
+    success_url = reverse_lazy("sign-in")
+
+    def form_valid(self, form):
+        messages.success(self.request,'password reset successfully')
+        return super().form_valid(form)
+
 def is_admin(user):
     return user.groups.filter(name ='Admin').exists()
 
@@ -49,6 +120,19 @@ def sign_in(request):
             login(request,user)
             return redirect("home")
     return render(request,"registration/login.html",{'form':form})
+
+
+class CustomLoginView(LoginView):
+    form_class = LoginForm
+    template_name = "registration/login.html"
+    success_url = reverse_lazy("home")
+
+    # def get_success_url(self):
+    #     next_url = self.request.GET.get('next')
+    #     print("next",next_url)
+    #     return next_url if next_url else super().get_success_url()
+
+
 
 @login_required
 def sign_out(request):
@@ -154,6 +238,7 @@ def delete_participant(request,id):
         messages.error(request,"something went wrong")
         return redirect('admin-dashboard')
 
+
 @user_passes_test(is_admin,login_url="no-permission")
 def assign_role(request,user_id):
     user = User.objects.get(id = user_id)
@@ -184,8 +269,8 @@ def create_group(request):
 
 
 
-@user_passes_test(is_organizer,login_url="no-permission")
-@user_passes_test(is_admin,login_url="no-permission")
+# @user_passes_test(is_organizer,login_url="no-permission")
+# @user_passes_test(is_admin,login_url="no-permission")
 def create_event(request):
     event_form = EventModelForm()
 

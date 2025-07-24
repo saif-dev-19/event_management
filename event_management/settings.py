@@ -102,12 +102,12 @@ DATABASES = {
 }
 
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default='postgresql://event_management_db_p08u_user:mRqpqOlqNenstd0CqKlW021AZNRM4hfl@dpg-d1jcfrqdbo4c739jg7t0-a.oregon-postgres.render.com/event_management_db_p08u',
-        conn_max_age=600
-    )
-}
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgresql://event_management_db_p08u_user:mRqpqOlqNenstd0CqKlW021AZNRM4hfl@dpg-d1jcfrqdbo4c739jg7t0-a.oregon-postgres.render.com/event_management_db_p08u',
+#         conn_max_age=600
+#     )
+# }
 
 
 # Password validation
@@ -163,3 +163,7 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 FRONTEND_URL = 'http://127.0.0.1:8000'
+
+LOGIN_REDIRECT_URL = "/event/dashboard/"
+LOGIN_URL = "/users/sign-in/"
+AUTH_USER_MODEL = 'users.CustomUser'
