@@ -13,6 +13,7 @@ from django.conf import settings
 from django.views.generic import CreateView,UpdateView,DeleteView
 from django.urls import reverse_lazy
 from django.contrib.auth import get_user_model
+from django.contrib.auth.mixins import UserPassesTestMixin
 # Create your views here.
 
 User = get_user_model()
@@ -21,7 +22,9 @@ def is_users(user):
     return user.groups.filter(name = 'User').exists()
 
 def home_page(request):
-    return render(request,"home_page.html")
+    events = Event.objects.order_by('date')[:6]
+    context = {"events": events}
+    return render(request,"home_page.html", context)
 
 def participant_page(request):
     return render(request,"grids/participant_page.html")
@@ -127,12 +130,23 @@ def user_dashboard(request):
 #     context = {"event_form":event_form}
 #     return render(request,"event_form.html",context)
 
+def is_admin_or_organizer(user):
+    return is_admin(user) or is_organizer(user)
 
-class CreateEventView(CreateView):
+
+
+class CreateEventView(UserPassesTestMixin,CreateView):
     model = Event
     form_class = EventModelForm
     template_name = "event_form.html"
     success_url = reverse_lazy("create-event")
+
+    def test_func(self):
+        return is_admin(self.request.user) or is_organizer(self.request.user)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You don't have permission to create events.")
+        return redirect("no-permission") 
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -235,7 +249,7 @@ class DeleteEventView(DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-@user_passes_test(is_organizer,login_url="no-permission")
+@user_passes_test(is_admin,login_url="no-permission")
 def create_category(request):
     category_form = CategoryForm()
 
@@ -334,3 +348,58 @@ def rspv_event(request,event_id):
         send_mail(subject,message,settings.EMAIL_HOST_USER,recipient_list)
     
     return redirect("event-dashboard")
+
+
+from django.shortcuts import render
+
+
+def about_us(request):
+    context = {
+        'company_name': 'EventHook',
+        'tagline': 'We build delightful stuff',
+        'description': (
+        "We are a passionate team committed to delivering quality "
+        "products and creating great user experiences."
+        ),
+        'year_founded': 2020,
+        'team': [
+        {
+        'name': 'Mahfuz',
+        'role': 'Founder & CEO',
+        'bio': 'Visionary leader and tech enthusiast.',
+        'photo': 'https://via.placeholder.com/100',
+        'linkedin': 'https://linkedin.com',
+        'twitter': 'https://twitter.com',
+        },
+        {
+        'name': 'Jahidul',
+        'role': 'Designer',
+        'bio': 'Creates beautiful and accessible designs.',
+        'photo': 'https://via.placeholder.com/100',
+        'linkedin': '',
+        'twitter': 'https://twitter.com',
+        },
+        {
+        'name': 'Sabbir',
+        'role': 'Developer',
+        'bio': 'Loves clean code and solving problems.',
+        'photo': 'https://via.placeholder.com/100',
+        'linkedin': 'https://linkedin.com',
+        'twitter': '',
+        }
+        ],
+        'quick_facts': {
+        'projects': '100+',
+        'customers': '80+',
+        'location': 'Remote / Dhaka'
+        },
+        'contact': {
+        'email': 'Eventhook.com',
+        'phone': '+8801518962201'
+        }
+    }
+    return render(request, 'about_us.html', context)
+
+
+def contact(request):
+    return render(request, 'contact.html')

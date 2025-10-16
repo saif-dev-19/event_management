@@ -1,14 +1,46 @@
 {% extends "base.html" %}
 {% block content %}
 
-    <div class="p-5">
-        <section class="bg-blue-50 py-20">
-            <div class="mx-auto mb-4">
-                <h2 class="text-2xl md:text-3xl mb-4 font-semibold">Plan your event unique way</h2>
-                <p clas="text-gray-500 mb-5">For Any event we help you to doing well</p>
-                <a href="" class="inline-block bg-blue-500 text-white px-5 py-3 rounded">Get Started</a>
+    <section class="bg-blue-50 py-16">
+        <div class="container mx-auto px-6">
+            <div class="max-w-3xl">
+                <h1 class="text-3xl md:text-4xl font-semibold mb-4">Discover and RSVP to upcoming events</h1>
+                <p class="text-gray-600 mb-6">Plan your next experience with ease. Browse events and secure your spot.</p>
+                <div class="flex gap-3">
+                    <a href="{% url 'event-dashboard' %}" class="bg-blue-500 text-white px-5 py-3 rounded hover:bg-blue-600 transition">Browse Events</a>
+                    <a href="{% url 'about-us' %}" class="bg-gray-800 text-white px-5 py-3 rounded hover:bg-black transition">Learn More</a>
+                </div>
             </div>
-        </section>
-    </div>
+        </div>
+    </section>
 
-  {% endblock content %}
+    <section class="container mx-auto px-6 py-10">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-2xl font-semibold">Upcoming Events</h2>
+            <a href="{% url 'event-dashboard' %}" class="text-blue-600 hover:underline">View all</a>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for event in events %}
+                <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                    <a href="{% url 'event-detials' event.id %}" class="block p-4">
+                        <div class="flex items-start justify-between">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ event.name }}</h3>
+                            <span class="text-sm text-gray-600">{{ event.date }}</span>
+                        </div>
+                        <p class="text-gray-600 mt-2 line-clamp-2">{{ event.description|truncatewords:20 }}</p>
+                        <div class="mt-3 text-sm text-gray-700">{{ event.location }}</div>
+                    </a>
+                    <div class="px-4 pb-4">
+                        <form action="{% url 'rspv-event' event.id %}" method="post">
+                            {% csrf_token %}
+                            <button class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition">RSVP</button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="col-span-full text-gray-600">No upcoming events yet. Check back soon!</div>
+            {% endfor %}
+        </div>
+    </section>
+
+{% endblock content %}

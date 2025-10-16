@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="bg-blue-50 py-12">
+  <div class="container mx-auto px-6">
+    <h1 class="text-3xl font-semibold mb-2">About {{ company_name }}</h1>
+    <p class="text-gray-600">{{ tagline }}</p>
+  </div>
+</section>
+
+<section class="container mx-auto px-6 py-10">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="md:col-span-2">
+      <h2 class="text-xl font-semibold mb-3">Who we are</h2>
+      <p class="text-gray-700">{{ description }}</p>
+      <div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded shadow-sm">
+          <div class="text-gray-500 text-sm">Founded</div>
+          <div class="text-lg font-semibold">{{ year_founded }}</div>
+        </div>
+        <div class="bg-white p-4 rounded shadow-sm">
+          <div class="text-gray-500 text-sm">Projects</div>
+          <div class="text-lg font-semibold">{{ quick_facts.projects }}</div>
+        </div>
+        <div class="bg-white p-4 rounded shadow-sm">
+          <div class="text-gray-500 text-sm">Customers</div>
+          <div class="text-lg font-semibold">{{ quick_facts.customers }}</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <h2 class="text-xl font-semibold mb-3">Contact</h2>
+      <div class="bg-white p-4 rounded shadow-sm">
+        <div class="text-gray-700">Email: {{ contact.email }}</div>
+        <div class="text-gray-700">Phone: {{ contact.phone }}</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="text-xl font-semibold mt-10 mb-4">Our Team</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for member in team %}
+      <div class="bg-white rounded shadow-sm p-4">
+        <div class="flex items-center gap-4">
+          <img src="{{ member.photo }}" alt="{{ member.name }}" class="w-16 h-16 rounded-full object-cover">
+          <div>
+            <div class="font-semibold">{{ member.name }}</div>
+            <div class="text-gray-600 text-sm">{{ member.role }}</div>
+          </div>
+        </div>
+        <p class="text-gray-700 mt-3">{{ member.bio }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock content %}
+
