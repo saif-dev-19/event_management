@@ -14,8 +14,11 @@
         </div >
         
             <div class="mt-5 bg-white rounded-xl shadow-sm">
-                <div class=" grid grid-cols-2 border-b border-black text-lg text-black">
-                        <div class="font-semibold p-3">Events</div>
+                <div class=" grid grid-cols-4 border-b border-black text-lg text-black">
+                        <a href="?type=all" class="font-semibold p-3 {% if type == 'all' %}bg-gray-100{% endif %}">All Events</a>
+                        <a href="?type=upcoming" class="font-semibold p-3 {% if type == 'upcoming' %}bg-gray-100{% endif %}">Upcoming</a>
+                        <a href="?type=past" class="font-semibold p-3 {% if type == 'past' %}bg-gray-100{% endif %}">Past</a>
+                        <a href="?type=total_events" class="font-semibold p-3 {% if type == 'total_events' %}bg-gray-100{% endif %}">Total</a>
                 </div>
             </div >
         
@@ -24,20 +27,26 @@
                     <div class="border rounded-md border-black text-lg text-black">
                     <div class="divide-y divide-gray-100">
                 <div class="grid grid-cols-2 p-4 gap-2">
-                    <div class=" items-center gap-2">
+                    <div class="flex items-center gap-3">
+                        {% if event.asset %}
+                            <img src="{{ event.asset.url }}" alt="{{ event.name }}" class="h-10 w-10 object-cover rounded" />
+                        {% else %}
+                            <div class="h-10 w-10 flex items-center justify-center bg-gray-200 text-gray-600 rounded">No Image</div>
+                        {% endif %}
                         <a class="text-black font-semibold" href="{% url 'event-detials' event.id %}">{{event.name}}</a>
-                            
                     </div>
-                    {% if type == "upcoming" or type == "all" %}
-                        <div>
-                            <form action="{% url 'rspv-event' event.id %}" method="POST">
-                                {% csrf_token %}
-                                <button class="px-2 py-1 bg-blue-500 text-white">RSVP</button>
-                            </form>
-                        
-                        </div>
-
-                    {% endif %}
+                    <div>
+                        {% if request.user.is_authenticated %}
+                            {% if request.user in event.rspv.all %}
+                                <button class="px-2 py-1 bg-gray-400 text-white cursor-not-allowed" disabled>RSVPed</button>
+                            {% else %}
+                                <form action="{% url 'rspv-event' event.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button class="px-2 py-1 bg-blue-500 text-white">RSVP</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
                 </div>
                 </div>

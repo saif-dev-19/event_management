@@ -18,3 +18,11 @@ def humanized_date(value):
             return f"{value.date().strftime('%B %d')}, {value.strftime('%I:%M %p')}"
     
     return "No login record available"
+
+
+@register.filter
+def has_group(user, group_name):
+    try:
+        return user.groups.filter(name=group_name).exists()
+    except Exception:
+        return False

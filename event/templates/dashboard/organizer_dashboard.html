@@ -16,21 +16,21 @@
     <header class="bg-white shadow-md">
       <nav class="container mx-auto px-6 py-3">
         <div class="flex justify-between items-center">
-          <a href="index.html" class="text-xl font-bold text-gray-800"
+          <a href="{% url 'home' %}" class="text-xl font-bold text-gray-800"
             >Event Management</a
           >
           <div class="hidden md:flex space-x-4">
             <a href="{% url 'create-event' %}" class="text-gray-600 hover:text-gray-800">Create Event</a>
-            
-            <a
-              href=""
-              class="text-gray-600 hover:text-gray-800"
-              >Delete Event</a
-            >
+          
             <a
               href="{% url 'create-category' %}"
               class="text-gray-600 hover:text-gray-800"
               >Create Category</a
+            >
+            <a
+              href="{% url 'about-us' %}"
+              class="text-gray-600 hover:text-gray-800"
+              >About Us</a
             >
           </div>
           <div class="flex items-center">
@@ -50,7 +50,7 @@
                 class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden"
               >
               <a
-                  href="{% url "admin-dashboard" %}"
+                  href="{% url "organizer-dashboard" %}"
                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >Dashboard</a
                 >
@@ -117,18 +117,23 @@
                 {% for event in events %}
                     <div class="border rounded-md border-black text-lg text-black">
                     <div class="divide-y divide-gray-100">
-                <div class="grid grid-cols-2 p-4 gap-2">
-                    <div class=" items-center gap-2">
+                <div class="grid grid-cols-3 p-4 gap-4 items-center">
+                    <div class="flex items-center gap-3">
+                        {% if event.asset %}
+                            <img src="{{ event.asset.url }}" alt="{{ event.name }}" class="h-12 w-12 object-cover rounded" />
+                        {% else %}
+                            <div class="h-12 w-12 flex items-center justify-center bg-gray-200 text-gray-600 rounded">No Image</div>
+                        {% endif %}
                         <a class="text-black font-semibold" href="{% url 'event-detials' event.id %}">{{event.name}}</a>
-                        <div class="">
-                    <form action='{% url "delete-event" event.id %}' method="POST">
-                        {% csrf_token %}
-                        <button class="px-2 py-1 bg-red-500 rounded-md">Delete</button>
-                </form>
-                </div> 
-                            
-                </div>
-                    
+                    </div>
+                    <div class="text-sm text-gray-700">{{ event.date }} • {{ event.location }}</div>
+                    <div class="flex gap-2 justify-end">
+                        <a href="{% url 'update-event' event.id %}" class="px-2 py-1 bg-yellow-500 text-white rounded-md">Edit</a>
+                        <form action='{% url "delete-event" event.id %}' method="POST">
+                            {% csrf_token %}
+                            <button class="px-2 py-1 bg-red-500 text-white rounded-md">Delete</button>
+                        </form>
+                    </div>
                 </div>
                 </div>
                 </div>

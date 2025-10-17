@@ -6,7 +6,7 @@
           <a href="{% url 'home' %}" class="text-xl font-bold text-gray-800">Event Management</a>
           <div class="hidden md:flex space-x-4">
             <a href="{% url 'about-us' %}" class="text-gray-600 hover:text-gray-800">About</a>
-            <a href="{% url 'event-dashboard' %}" class="text-gray-600 hover:text-gray-800">Events</a>
+            <a href="{% url 'sign-in' %}?next={% url 'event-dashboard' %}" class="text-gray-600 hover:text-gray-800">Events</a>
             <a href="{% url 'contact' %}" class="text-gray-600 hover:text-gray-800">Contact</a>
           </div>
           <div class="md:hidden">

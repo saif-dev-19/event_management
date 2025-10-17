@@ -22,7 +22,7 @@ def is_users(user):
     return user.groups.filter(name = 'User').exists()
 
 def home_page(request):
-    events = Event.objects.order_by('date')[:6]
+    events = Event.objects.prefetch_related('rspv').order_by('date')[:6]
     context = {"events": events}
     return render(request,"home_page.html", context)
 
@@ -46,7 +46,7 @@ def dashboard(request):
 
 @user_passes_test(is_organizer,login_url="no-permission")
 def organizer_dashboard(request):
-    events = Event.objects.prefetch_related('participants').all()
+    events = Event.objects.prefetch_related('participants', 'rspv').all()
     for e in events:
         event = e
     return render(request,"dashboard/organizer_dashboard.html",{'events':events,'event':event})
@@ -57,7 +57,7 @@ def user_dashboard(request):
     type = request.GET.get('type','all')
 
     cr_day = datetime.now().date()
-    events = Event.objects.prefetch_related('participants').all()
+    events = Event.objects.prefetch_related('participants', 'rspv').all()
     participant = User.objects.all()
     print(participant)
 
@@ -70,8 +70,8 @@ def user_dashboard(request):
         events = events.filter(name__icontains = search_location)
 
     
-    upcoming_event = [event for event in events if event.date >= cr_day]
-    past_event = [event for event in events if event.date < cr_day]
+    upcoming_events_qs = events.filter(date__gte=cr_day)
+    past_events_qs = events.filter(date__lt=cr_day)
 
 
     if type =="participants":
@@ -79,17 +79,18 @@ def user_dashboard(request):
     elif type == "total_events":
         result = events
     elif type == "upcoming":
-        result = events.filter(date__gte=cr_day)
+        result = upcoming_events_qs
     elif type == "past":
-        result = events.filter(date__lte=cr_day)
+        result = past_events_qs
     else:
-        result = events.filter(date__gte=cr_day)
+        # default to showing all events if type is 'all' or unknown
+        result = events
 
     
 
     counts ={
-        'upcoming' : len(upcoming_event),
-        'past' : len(past_event),
+        'upcoming' : upcoming_events_qs.count(),
+        'past' : past_events_qs.count(),
         'total_participant' : Participant.objects.values('id').distinct().count(),
         'total_event' : events.count()
     }
@@ -249,7 +250,7 @@ class DeleteEventView(DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-@user_passes_test(is_admin,login_url="no-permission")
+@user_passes_test(is_admin_or_organizer,login_url="no-permission")
 def create_category(request):
     category_form = CategoryForm()
 
