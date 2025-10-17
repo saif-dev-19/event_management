@@ -12,7 +12,58 @@
             {% csrf_token %}
                {{form}}
             <button type="submit" class=" my-3 px-1 py-2 bg-blue-500 text-white rounded-lg">Sign In</button>
+            <button type="button" id="demo-users-btn" class="ml-3 my-3 px-2 py-2 bg-gray-700 text-white rounded-lg">Demo users</button>
         </form>
         <p><a href="{% url "password_reset" %}">forgot password?</a></p>
     </div>
+
+    <!-- Demo Users Modal -->
+    <div id="demo-users-modal" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+        <div class="relative mx-auto mt-24 w-11/12 max-w-md bg-white rounded-lg shadow-lg">
+            <div class="px-5 py-4 border-b flex items-center justify-between">
+                <h3 class="text-lg font-semibold">Demo users</h3>
+                <button id="demo-users-close" class="text-gray-600 hover:text-black">✕</button>
+            </div>
+            <div class="px-5 py-4 text-sm text-gray-800 space-y-3">
+                <div>
+                    <div class="font-semibold">users:</div>
+                </div>
+                <div class="bg-gray-50 rounded p-3">
+                    <div class="font-medium">admin</div>
+                    <div>username: <code class="bg-gray-200 px-1 rounded">admin</code></div>
+                    <div>pass: <code class="bg-gray-200 px-1 rounded">1234</code></div>
+                </div>
+                <div class="bg-gray-50 rounded p-3">
+                    <div class="font-medium">organizer</div>
+                    <div>username: <code class="bg-gray-200 px-1 rounded">organizer</code></div>
+                    <div>pass: <code class="bg-gray-200 px-1 rounded">Test123@#</code></div>
+                </div>
+                <div class="bg-gray-50 rounded p-3">
+                    <div class="font-medium">user</div>
+                    <div>username: <code class="bg-gray-200 px-1 rounded">real_user</code></div>
+                    <div>pass: <code class="bg-gray-200 px-1 rounded">Test123@#</code></div>
+                </div>
+            </div>
+            <div class="px-5 py-3 border-t flex justify-end">
+                <button id="demo-users-close-2" class="px-3 py-2 bg-blue-500 text-white rounded">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            var openBtn = document.getElementById('demo-users-btn');
+            var modal = document.getElementById('demo-users-modal');
+            var closeBtn = document.getElementById('demo-users-close');
+            var closeBtn2 = document.getElementById('demo-users-close-2');
+            if (openBtn && modal) {
+                openBtn.addEventListener('click', function(){ modal.classList.remove('hidden'); });
+            }
+            function closeModal(){ modal.classList.add('hidden'); }
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (closeBtn2) closeBtn2.addEventListener('click', closeModal);
+            window.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
+        })();
+    </script>
 {% endblock content %}
