@@ -1,37 +1,119 @@
 
 {% extends "base.html" %}
 {% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-user-plus text-2xl text-white"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-white mb-2">Join EventFlow</h2>
+            <p class="text-white/80">Create your account and start managing amazing events</p>
+        </div>
 
-
-    {% if form.non_field_errors %}
-            {% for error in form.non_field_errors %}
-                {{error}}
-            {% endfor %}
+        <!-- Non-field Errors -->
+        {% if form.non_field_errors %}
+            <div class="space-y-4">
+                {% for error in form.non_field_errors %}
+                    <div class="glass-effect rounded-xl p-4 bg-red-500/20 border border-red-500/30">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-400 mr-3"></i>
+                            <span class="text-white font-medium">{{error}}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
 
-    <div class="my-9 w-1/2 mx-auto">
+        <!-- Registration Form -->
+        <div class="glass-effect rounded-2xl p-8">
+            <form action="" method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                    <div>
+                        <label for="{{field.id_for_label}}" class="block text-sm font-medium text-white mb-2">
+                            {% if field.name == 'username' %}
+                                <i class="fas fa-user mr-2"></i>Username
+                            {% elif field.name == 'email' %}
+                                <i class="fas fa-envelope mr-2"></i>Email
+                            {% elif field.name == 'password1' %}
+                                <i class="fas fa-lock mr-2"></i>Password
+                            {% elif field.name == 'password2' %}
+                                <i class="fas fa-lock mr-2"></i>Confirm Password
+                            {% elif field.name == 'first_name' %}
+                                <i class="fas fa-user mr-2"></i>First Name
+                            {% elif field.name == 'last_name' %}
+                                <i class="fas fa-user mr-2"></i>Last Name
+                            {% else %}
+                                {{field.label}}
+                            {% endif %}
+                        </label>
+                        
+                        {{field}}
+                        
+                        {% if field.errors %}
+                            <div class="mt-2 text-red-400 text-sm">
+                                {% for error in field.errors %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
 
-        <form action="" method="POST">
-        {% csrf_token %}
-        {% for field in form %}
-                <p>
-                    <label for="{{field.id_for_label}}">{{field.label}}</label>
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 transform hover:scale-105">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <i class="fas fa-user-plus text-purple-300 group-hover:text-purple-200"></i>
+                        </span>
+                        Create Account
+                    </button>
+                </div>
 
-                    {{field}}
+                <!-- Sign In Link -->
+                <div class="text-center">
+                    <p class="text-white/80">
+                        Already have an account? 
+                        <a href="{% url 'sign-in' %}" class="font-medium text-purple-300 hover:text-purple-200 transition-colors">
+                            Sign in here
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
 
-                    {% if field.errors %}
-                        <ul>
-                            {% for error in field.errors %}
-                                <li>{{error}}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </p>
-            {% endfor %}
-        <button type="submit" class=" my-3 px-1 py-2 bg-blue-500 text-white rounded-lg">Sign In</button>
-    </form>
-
+        
     </div>
+</div>
 
-    {% endblock content %}
+<style>
+/* Custom form styling */
+input[type="text"], input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+input[type="text"]::placeholder, input[type="email"]::placeholder, input[type="password"]::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+</style>
+{% endblock content %}
     

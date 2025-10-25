@@ -86,7 +86,8 @@ class EventModelForm(StyledFormMixin,forms.ModelForm):
         widgets = {
             'date' : forms.DateInput(attrs={'type':'date'}),
             'time' : forms.TimeInput(attrs={'type':'time'}),
-            'category':forms.RadioSelect,
+            # Use a nice single-select dropdown for category
+            'category': forms.Select,
         }
 
         labels = {

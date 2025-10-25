@@ -1,69 +1,188 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Header -->
+        <div class="text-center">
+            <div class="mx-auto h-16 w-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mb-6">
+                <i class="fas fa-calendar-star text-2xl text-white"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+            <p class="text-white/80">Sign in to your EventFlow account</p>
+        </div>
 
-    <div class="my-9 w-1/2 mx-auto">
+        <!-- Messages -->
         {% if messages %}
+            <div class="space-y-4">
                 {% for message in messages %}
-                    <div class="px-2 py-1 {% if message.tags == 'success' %} bg-green-500{%endif %} {% if message.tags == 'error' %} bg-red-500{%endif %}">{{message}}</div>
+                    <div class="glass-effect rounded-xl p-4 {% if message.tags == 'error' %}bg-red-500/20 border border-red-500/30{% endif %} {% if message.tags == 'success' %}bg-green-500/20 border border-green-500/30{% endif %}">
+                        <div class="flex items-center">
+                            {% if message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle text-red-400 mr-3"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                            {% endif %}
+                            <span class="text-white font-medium">{{message}}</span>
+                        </div>
+                    </div>
                 {% endfor %}
+            </div>
         {% endif %}
-        <form action="" method="POST">
-            {% csrf_token %}
-               {{form}}
-            <button type="submit" class=" my-3 px-1 py-2 bg-blue-500 text-white rounded-lg">Sign In</button>
-            <button type="button" id="demo-users-btn" class="ml-3 my-3 px-2 py-2 bg-gray-700 text-white rounded-lg">Demo users</button>
-        </form>
-        <p><a href="{% url "password_reset" %}">forgot password?</a></p>
-    </div>
 
-    <!-- Demo Users Modal -->
-    <div id="demo-users-modal" class="hidden fixed inset-0 z-50">
-        <div class="absolute inset-0 bg-black bg-opacity-50"></div>
-        <div class="relative mx-auto mt-24 w-11/12 max-w-md bg-white rounded-lg shadow-lg">
-            <div class="px-5 py-4 border-b flex items-center justify-between">
-                <h3 class="text-lg font-semibold">Demo users</h3>
-                <button id="demo-users-close" class="text-gray-600 hover:text-black">✕</button>
-            </div>
-            <div class="px-5 py-4 text-sm text-gray-800 space-y-3">
+        <!-- Login Form -->
+        <div class="glass-effect rounded-2xl p-8">
+            <form action="" method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Username Field -->
                 <div>
-                    <div class="font-semibold">users:</div>
+                    <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                        <i class="fas fa-user mr-2"></i>Username
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <div class="mt-2 text-red-400 text-sm">
+                            {% for error in form.username.errors %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="bg-gray-50 rounded p-3">
-                    <div class="font-medium">admin</div>
-                    <div>username: <code class="bg-gray-200 px-1 rounded">admin</code></div>
-                    <div>pass: <code class="bg-gray-200 px-1 rounded">1234</code></div>
+
+                <!-- Password Field -->
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                        <i class="fas fa-lock mr-2"></i>Password
+                    </label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <div class="mt-2 text-red-400 text-sm">
+                            {% for error in form.password.errors %}
+                                <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                <div class="bg-gray-50 rounded p-3">
-                    <div class="font-medium">organizer</div>
-                    <div>username: <code class="bg-gray-200 px-1 rounded">organizer</code></div>
-                    <div>pass: <code class="bg-gray-200 px-1 rounded">Test123@#</code></div>
+
+                <!-- Remember Me & Forgot Password -->
+                <div class="flex items-center justify-between">
+                    <div class="text-sm">
+                        <a href="{% url 'password_reset' %}" class="font-medium text-purple-300 hover:text-purple-200 transition-colors">
+                            Forgot your password?
+                        </a>
+                    </div>
                 </div>
-                <div class="bg-gray-50 rounded p-3">
-                    <div class="font-medium">user</div>
-                    <div>username: <code class="bg-gray-200 px-1 rounded">real_user</code></div>
-                    <div>pass: <code class="bg-gray-200 px-1 rounded">Test123@#</code></div>
+
+                <!-- Submit Button -->
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 transform hover:scale-105">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <i class="fas fa-sign-in-alt text-purple-200 group-hover:text-purple-200"></i>
+                        </span>
+                        Sign In
+                    </button>
                 </div>
-            </div>
-            <div class="px-5 py-3 border-t flex justify-end">
-                <button id="demo-users-close-2" class="px-3 py-2 bg-blue-500 text-white rounded">Close</button>
+
+                <!-- Demo Users Button -->
+                <div class="mt-4 text-center">
+                    <button type="button" 
+                            id="demoUsersBtn" 
+                            class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-all duration-300">
+                        Show Demo Users
+                    </button>
+                </div>
+
+                <!-- Sign Up Link -->
+                <div class="text-center mt-4">
+                    <p class="text-white/80">
+                        Don't have an account? 
+                        <a href="{% url 'sign-up' %}" class="font-medium text-purple-300 hover:text-purple-200 transition-colors">
+                            Sign up here
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Demo Users Modal -->
+        <div id="demoUsersModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+            <div class="bg-gray-900 rounded-xl p-6 max-w-md w-full relative">
+                <button id="closeDemoModal" class="absolute top-3 right-3 text-white text-lg font-bold">&times;</button>
+                <h3 class="text-xl font-bold text-white mb-4 text-center">Demo Users</h3>
+                <div class="space-y-3 text-white/80">
+                    <div class="p-3 bg-gray-800 rounded-lg">
+                        <p><span class="font-semibold">Username:</span> admin</p>
+                        <p><span class="font-semibold">Password:</span> 1234</p>
+                    </div>
+                    <div class="p-3 bg-gray-800 rounded-lg">
+                        <p><span class="font-semibold">Username:</span> organizer</p>
+                        <p><span class="font-semibold">Password:</span> Test123@#</p>
+                    </div>
+                    <div class="p-3 bg-gray-800 rounded-lg">
+                        <p><span class="font-semibold">Username:</span> real_user</p>
+                        <p><span class="font-semibold">Password:</span> Test123@#</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        (function(){
-            var openBtn = document.getElementById('demo-users-btn');
-            var modal = document.getElementById('demo-users-modal');
-            var closeBtn = document.getElementById('demo-users-close');
-            var closeBtn2 = document.getElementById('demo-users-close-2');
-            if (openBtn && modal) {
-                openBtn.addEventListener('click', function(){ modal.classList.remove('hidden'); });
-            }
-            function closeModal(){ modal.classList.add('hidden'); }
-            if (closeBtn) closeBtn.addEventListener('click', closeModal);
-            if (closeBtn2) closeBtn2.addEventListener('click', closeModal);
-            window.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal(); });
-        })();
-    </script>
+        
+    </div>
+</div>
+
+<!-- JavaScript for Demo Users Modal -->
+<script>
+    const demoBtn = document.getElementById('demoUsersBtn');
+    const demoModal = document.getElementById('demoUsersModal');
+    const closeBtn = document.getElementById('closeDemoModal');
+
+    demoBtn.addEventListener('click', () => {
+        demoModal.classList.remove('hidden');
+        demoModal.classList.add('flex');
+    });
+
+    closeBtn.addEventListener('click', () => {
+        demoModal.classList.add('hidden');
+        demoModal.classList.remove('flex');
+    });
+
+    // Click outside modal to close
+    window.addEventListener('click', (e) => {
+        if (e.target === demoModal) {
+            demoModal.classList.add('hidden');
+            demoModal.classList.remove('flex');
+        }
+    });
+</script>
+
+<style>
+/* Custom form styling */
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+input[type="text"]::placeholder, input[type="password"]::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+input[type="checkbox"] {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+</style>
 {% endblock content %}

@@ -1,60 +1,121 @@
-    {% extends "dashboard/dashboard.html" %} 
+{% extends "dashboard/dashboard.html" %} 
     
-    {% block title %}Event Dashboard{% endblock title %}
+{% block title %}Event Dashboard{% endblock title %}
     
-    {% block event %}
+{% block event %}
+<div class="glass-effect rounded-2xl p-8">
+    <!-- Search Section -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-white mb-6">Event Search</h2>
+        <form method="GET" action="" class="flex flex-col md:flex-row gap-4">
+            <!-- Hidden type field -->
+            <input type="hidden" name="type" value="{{ type }}">
 
-      {% comment %} events {% endcomment %}
+            <div class="flex-1">
+                <input 
+                    type="text" 
+                    name="name" 
+                    value="{{ search_name|default:'' }}"
+                    placeholder="Search events by name..." 
+                    class="w-full px-6 py-4 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:border-white/40 transition-colors"
+                >
+            </div>
+            <button 
+                type="submit" 
+                class="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-8 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center"
+            >
+                <i class="fas fa-search mr-2"></i>Search
+            </button>
+            {% if search_name %}
+                <a href="{% url 'event-dashboard' %}" class="bg-white/10 hover:bg-white/20 text-white px-6 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>Clear
+                </a>
+            {% endif %}
+        </form>
 
-      <div class="items-center ">
-            <form method="GET" action="">
-                <input type="text" name="name" placeholder="Search by name"  class="border border-black rounded-md">
-                <button type="submit">Search</button>
-            </form>
-        </div >
-        
-            <div class="mt-5 bg-white rounded-xl shadow-sm">
-                <div class=" grid grid-cols-4 border-b border-black text-lg text-black">
-                        <a href="?type=all" class="font-semibold p-3 {% if type == 'all' %}bg-gray-100{% endif %}">All Events</a>
-                        <a href="?type=upcoming" class="font-semibold p-3 {% if type == 'upcoming' %}bg-gray-100{% endif %}">Upcoming</a>
-                        <a href="?type=past" class="font-semibold p-3 {% if type == 'past' %}bg-gray-100{% endif %}">Past</a>
-                        <a href="?type=total_events" class="font-semibold p-3 {% if type == 'total_events' %}bg-gray-100{% endif %}">Total</a>
-                </div>
-            </div >
-        
-        <div class="mb-9">
-                {% for event in result %}
-                    <div class="border rounded-md border-black text-lg text-black">
-                    <div class="divide-y divide-gray-100">
-                <div class="grid grid-cols-2 p-4 gap-2">
-                    <div class="flex items-center gap-3">
-                        {% if event.asset %}
-                            <img src="{{ event.asset.url }}" alt="{{ event.name }}" class="h-10 w-10 object-cover rounded" />
-                        {% else %}
-                            <div class="h-10 w-10 flex items-center justify-center bg-gray-200 text-gray-600 rounded">No Image</div>
-                        {% endif %}
-                        <a class="text-black font-semibold" href="{% url 'event-detials' event.id %}">{{event.name}}</a>
-                    </div>
-                    <div>
-                        {% if request.user.is_authenticated %}
-                            {% if request.user in event.rspv.all %}
-                                <button class="px-2 py-1 bg-gray-400 text-white cursor-not-allowed" disabled>RSVPed</button>
-                            {% else %}
-                                <form action="{% url 'rspv-event' event.id %}" method="POST">
-                                    {% csrf_token %}
-                                    <button class="px-2 py-1 bg-blue-500 text-white">RSVP</button>
-                                </form>
-                            {% endif %}
-                        {% endif %}
-                    </div>
-                </div>
-                </div>
-                </div>
-                {% endfor %}
+    </div>
+    
+    <!-- Events List -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold text-white">
+                Events
+                {% if search_name %}
+                    <span class="text-purple-300 text-lg font-normal">- Search results for "{{ search_name }}"</span>
+                {% endif %}
+            </h2>
+            <div class="flex items-center space-x-4">
+                <span class="text-white/60 text-sm">{{ result|length }} events found</span>
+                
+            </div>
         </div>
         
-        
-
-        
-
-    {% endblock event %} 
+        {% if result %}
+            <div class="space-y-4">
+                {% for event in result %}
+                    <div class="glass-effect rounded-xl p-6 card-hover">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-start justify-between mb-3">
+                                    <h3 class="text-xl font-bold text-white mb-2">
+                                        <a href="{% url 'event-details' event.id %}" class="hover:text-purple-300 transition-colors">
+                                            {{event.name}}
+                                        </a>
+                                    </h3>
+                                    <div class="flex items-center text-white/60 text-sm">
+                                        <i class="fas fa-calendar-alt mr-2"></i>
+                                        <span>{{ event.date }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-white/80 mb-3">
+                                    <i class="fas fa-map-marker-alt mr-2 text-purple-300"></i>
+                                    <span>{{ event.location }}</span>
+                                </div>
+                                {% if event.description %}
+                                    <p class="text-white/70 text-sm line-clamp-2">{{ event.description|truncatewords:15 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <a href="{% url 'event-details' event.id %}" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center">
+                                    <i class="fas fa-eye mr-2"></i>View Details
+                                </a>
+                                
+                                {% if type == "upcoming" or type == "all" %}
+                                    <form action="{% url 'rspv-event' event.id %}" method="POST" class="flex">
+                                        {% csrf_token %}
+                                        <button class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 flex items-center">
+                                            <i class="fas fa-calendar-check mr-2"></i>RSVP
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-16">
+                <div class="glass-effect rounded-2xl p-12 max-w-md mx-auto">
+                    <i class="fas fa-search text-6xl text-white/40 mb-6"></i>
+                    <h3 class="text-2xl font-bold text-white mb-4">No Events Found</h3>
+                    <p class="text-white/80 mb-6">
+                        {% if request.GET.name %}
+                            No events match your search criteria. Try adjusting your search terms.
+                        {% else %}
+                            No events available at the moment. Be the first to create an event!
+                        {% endif %}
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        {% if request.GET.name %}
+                            <a href="{% url 'event-dashboard' %}" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300">
+                                <i class="fas fa-list mr-2"></i>View All Events
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock event %}

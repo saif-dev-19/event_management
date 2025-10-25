@@ -1,31 +1,244 @@
 
 
-{% load static %}
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title></title>
-        <meta name="description" content="">
-        <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="{% static 'css/output.css' %}">
-    </head>
-    <body>
-        <div class="w-1/2 mx-auto mt-8">
-        <div>
-            {% if messages %}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen py-8">
+    <div class="container mx-auto px-6">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
+                Create Your <span class="gradient-text">Event</span>
+            </h1>
+            <p class="text-xl text-white/80 max-w-2xl mx-auto">
+                {% if is_update %}Update the details of your event below.{% else %}Fill in the details below to create an amazing event that people will love to attend.{% endif %}
+            </p>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-8">
                 {% for message in messages %}
-                    <div class="px-2 py-1 {% if message.tags == 'success' %} bg-green-500{%endif %} {% if message.tags == 'error' %} bg-red-500{%endif %}">{{message}}</div>
+                    <div class="glass-effect rounded-xl p-4 mb-4 {% if message.tags == 'error' %}bg-red-500/20 border border-red-500/30{% endif %} {% if message.tags == 'success' %}bg-green-500/20 border border-green-500/30{% endif %}">
+                        <div class="flex items-center">
+                            {% if message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle text-red-400 mr-3"></i>
+                            {% elif message.tags == 'success' %}
+                                <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                            {% endif %}
+                            <span class="text-white font-medium">{{message}}</span>
+                        </div>
+                    </div>
                 {% endfor %}
-            {% endif %}
+            </div>
+        {% endif %}
+
+        <!-- Event Form -->
+        <div class="glass-effect rounded-2xl p-8 max-w-4xl mx-auto">
+            <form method="POST" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                <!-- Event Name -->
+                <div>
+                    <label for="{{ event_form.name.id_for_label }}" class="block text-lg font-semibold text-white mb-3">
+                        <i class="fas fa-calendar-star mr-2"></i>Event Name
+                    </label>
+                    {{ event_form.name }}
+                    {% if event_form.name.errors %}
+                        <div class="mt-2 text-red-400 text-sm">
+                            {% for error in event_form.name.errors %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Event Description -->
+                <div>
+                    <label for="{{ event_form.description.id_for_label }}" class="block text-lg font-semibold text-white mb-3">
+                        <i class="fas fa-align-left mr-2"></i>Description
+                    </label>
+                    {{ event_form.description }}
+                    {% if event_form.description.errors %}
+                        <div class="mt-2 text-red-400 text-sm">
+                            {% for error in event_form.description.errors %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Date, Time and Location Row -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Event Date -->
+                    <div>
+                        <label for="{{ event_form.date.id_for_label }}" class="block text-lg font-semibold text-white mb-3">
+                            <i class="fas fa-calendar-alt mr-2"></i>Event Date
+                        </label>
+                        {{ event_form.date }}
+                        {% if event_form.date.errors %}
+                            <div class="mt-2 text-red-400 text-sm">
+                                {% for error in event_form.date.errors %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Event Time -->
+                    <div>
+                        <label for="{{ event_form.time.id_for_label }}" class="block text-lg font-semibold text-white mb-3">
+                            <i class="fas fa-clock mr-2"></i>Event Time
+                        </label>
+                        {{ event_form.time }}
+                        {% if event_form.time.errors %}
+                            <div class="mt-2 text-red-400 text-sm">
+                                {% for error in event_form.time.errors %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Event Location -->
+                    <div>
+                        <label for="{{ event_form.location.id_for_label }}" class="block text-lg font-semibold text-white mb-3">
+                            <i class="fas fa-map-marker-alt mr-2"></i>Location
+                        </label>
+                        {{ event_form.location }}
+                        {% if event_form.location.errors %}
+                            <div class="mt-2 text-red-400 text-sm">
+                                {% for error in event_form.location.errors %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Category and Image Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Event Category -->
+                    <div class="">
+                        <label for="{{ event_form.category.id_for_label }}" class="block text-lg font-semibold text-white mb-3">
+                            <i class="fas fa-tags mr-2"></i>Category
+                        </label>
+                        {{ event_form.category }}
+                        {% if event_form.category.errors %}
+                            <div class="mt-2 text-red-400 text-sm">
+                                {% for error in event_form.category.errors %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Event Image -->
+                    <div>
+                        <label for="{{ event_form.asset.id_for_label }}" class="block text-lg font-semibold text-white mb-3">
+                            <i class="fas fa-image mr-2"></i>Event Image
+                        </label>
+                        {{ event_form.asset }}
+                        {% if event_form.asset.errors %}
+                            <div class="mt-2 text-red-400 text-sm">
+                            {% for error in event_form.asset.errors %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>{{ error }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        {% if is_update and event.asset %}
+                            <div class="mt-3">
+                                <img src="{{ event.asset.url }}" alt="Event Image" class="rounded-lg max-h-48">
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-center pt-8">
+                    <button type="submit" class="group bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-12 py-4 rounded-xl font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-2xl flex items-center">
+                        <i class="fas fa-plus mr-3"></i>
+                        {% if is_update %}Update Event{% else %}Create Event{% endif %}
+                        <i class="fas fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </form>
         </div>
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ event_form }}
-            <button type="submit" class="bg-rose-600 px-3 py-2 text-white mt-2 rounded-md">Submit</button>
-        </form>
+
+        <!-- Back Button -->
+        <div class="text-center mt-8">
+            <a href="{% url 'event-dashboard' %}" class="group bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-8 py-3 rounded-xl font-semibold transition-all duration-300 border border-white/20 hover:border-white/40 inline-flex items-center">
+                <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform"></i>
+                Back to Events
+            </a>
         </div>
-    </body>
-</html>
+    </div>
+</div>
+
+<style>
+/* Custom form styling */
+input[type="text"], input[type="datetime-local"], input[type="date"], input[type="time"], textarea, select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus, input[type="time"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+input[type="text"]::placeholder, textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+input[type="file"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+select option {
+    background: #1f2937;
+    color: white;
+}
+</style>
+{% endblock content %}

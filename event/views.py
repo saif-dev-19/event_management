@@ -22,7 +22,7 @@ def is_users(user):
     return user.groups.filter(name = 'User').exists()
 
 def home_page(request):
-    events = Event.objects.prefetch_related('rspv').order_by('date')[:6]
+    events = Event.objects.order_by('date')[:6]
     context = {"events": events}
     return render(request,"home_page.html", context)
 
@@ -46,10 +46,8 @@ def dashboard(request):
 
 @user_passes_test(is_organizer,login_url="no-permission")
 def organizer_dashboard(request):
-    events = Event.objects.prefetch_related('participants', 'rspv').all()
-    for e in events:
-        event = e
-    return render(request,"dashboard/organizer_dashboard.html",{'events':events,'event':event})
+    events = Event.objects.prefetch_related('participants').all()
+    return render(request,"dashboard/organizer_dashboard.html",{'events':events})
 
 
 @user_passes_test(is_users,login_url="no-permission")
@@ -57,40 +55,49 @@ def user_dashboard(request):
     type = request.GET.get('type','all')
 
     cr_day = datetime.now().date()
-    events = Event.objects.prefetch_related('participants', 'rspv').all()
+    events = Event.objects.prefetch_related('participants').all()
     participant = User.objects.all()
     print(participant)
 
     search_name= request.GET.get('name')
     search_location =request.GET.get('location')
 
+    # Debug: Print search parameters
+    print(f"Search name: {search_name}")
+    print(f"Search location: {search_location}")
+    print(f"Type: {type}")
+
+    # Apply search filters
     if search_name:
         events = events.filter(name__icontains = search_name)
+        print(f"Applied name filter. Events count: {events.count()}")
     if search_location:
-        events = events.filter(name__icontains = search_location)
+        events = events.filter(location__icontains = search_location)
+        print(f"Applied location filter. Events count: {events.count()}")
 
-    
-    upcoming_events_qs = events.filter(date__gte=cr_day)
-    past_events_qs = events.filter(date__lt=cr_day)
+    # Calculate upcoming and past events from the filtered queryset
+    upcoming_event = [event for event in events if event.date >= cr_day]
+    past_event = [event for event in events if event.date < cr_day]
 
-
-    if type =="participants":
+    # Determine result based on type, but preserve search filters
+    if type == "participants":
         result = participant
     elif type == "total_events":
-        result = events
+        result = events  # Already filtered by search
     elif type == "upcoming":
-        result = upcoming_events_qs
+        result = events.filter(date__gte=cr_day)
     elif type == "past":
-        result = past_events_qs
+        result = events.filter(date__lt=cr_day)
     else:
-        # default to showing all events if type is 'all' or unknown
         result = events
 
-    
+    # Debug: Print final result
+    print(f"Final result count: {result.count()}")
+    print(f"Final result: {list(result)}")
 
     counts ={
-        'upcoming' : upcoming_events_qs.count(),
-        'past' : past_events_qs.count(),
+        'upcoming' : len(upcoming_event),
+        'past' : len(past_event),
         'total_participant' : Participant.objects.values('id').distinct().count(),
         'total_event' : events.count()
     }
@@ -140,7 +147,7 @@ class CreateEventView(UserPassesTestMixin,CreateView):
     model = Event
     form_class = EventModelForm
     template_name = "event_form.html"
-    success_url = reverse_lazy("create-event")
+    success_url = reverse_lazy("event-dashboard")
 
     def test_func(self):
         return is_admin(self.request.user) or is_organizer(self.request.user)
@@ -151,21 +158,18 @@ class CreateEventView(UserPassesTestMixin,CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["event_form"] = EventModelForm()
+        context["event_form"] = context.get("form") or EventModelForm()
+        context["is_update"] = False
         return context
     
     def post(self, request, *args, **kwargs):
-        event_form = EventModelForm(request.POST,request.FILES)
-        print("inside post")
+        event_form = EventModelForm(request.POST, request.FILES)
         if event_form.is_valid():
-            event_form.save()
-        
-            if messages.success:
-                messages.success(request,"Event Created Successfully")
-                return redirect("create-event")
-            elif messages.error:
-                messages.error(request,"something wrong")
-                return redirect("create-event")
+            event = event_form.save()
+            messages.success(request, "Event created successfully")
+            return redirect("event-dashboard")
+        messages.error(request, "Please correct the errors below")
+        return render(request, self.template_name, {"event_form": event_form, "is_update": False})
     
     
     
@@ -197,34 +201,35 @@ class CreateEventView(UserPassesTestMixin,CreateView):
 
 
 
-class UpdateEventView(UpdateView):
+class UpdateEventView(UserPassesTestMixin, UpdateView):
     model = Event
     form_class = EventModelForm
     context_object_name = "event"
     pk_url_kwarg = "id"
     template_name = "event_form.html"
 
+    def test_func(self):
+        return is_admin(self.request.user) or is_organizer(self.request.user)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You don't have permission to update events.")
+        return redirect("no-permission")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["event_form"] = self.get_form() 
-        print("ob",self.get_object())
+        context["event_form"] = context.get("form") or self.get_form()
+        context["is_update"] = True
         return context
     
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        print("ob",self.object)
-        event_form = EventModelForm(request.POST,instance = self.object)
-
+        event_form = EventModelForm(request.POST, request.FILES, instance=self.object)
         if event_form.is_valid():
-            
-            event_form.save()
-
-            if messages.success:
-                messages.success(request,"Event updated Successfully")
-                return redirect("update-event",id=event_form.id)
-            elif messages.error:
-                messages.error(request,"something wrong")
-                return redirect("update-event")
+            event = event_form.save()
+            messages.success(request, "Event updated successfully")
+            return redirect("update-event", id=event.id)
+        messages.error(request, "Please correct the errors below")
+        return render(request, self.template_name, {"event_form": event_form, "is_update": True, "event": self.object})
 
 
 
@@ -240,10 +245,17 @@ class UpdateEventView(UpdateView):
 #         return redirect('organizer-dashboard')
 
 
-class DeleteEventView(DeleteView):
+class DeleteEventView(UserPassesTestMixin, DeleteView):
     model = Event
     pk_url_kwarg = "id"
     success_url = reverse_lazy("dashboard")
+
+    def test_func(self):
+        return is_admin(self.request.user) or is_organizer(self.request.user)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You don't have permission to delete events.")
+        return redirect("no-permission")
 
     def delete(self, request, *args, **kwargs):
         messages.success(request,"Event Delete Successfully")
@@ -258,35 +270,37 @@ def create_category(request):
         category_form = CategoryForm(request.POST)
         if category_form.is_valid():
             category_form.save()
-
-            if messages.success:
-                messages.success(request,"Category Created Successfully")
-                return redirect("create-category")
-            elif messages.error:
-                messages.error(request,"something wrong")
-                return redirect("create-category")
+            messages.success(request,"Category Created Successfully")
+            return redirect("create-category")
+        else:
+            messages.error(request,"Please correct the errors below")
     context = {"category_form":category_form}
     return render(request,"category_form.html",context)
 
 
 
-class CreateCategoryEvent(CreateView):
+class CreateCategoryEvent(UserPassesTestMixin, CreateView):
     model = Category
     form_class = CategoryForm
     template_name = "category_form.html"
     success_url = reverse_lazy("create-category")
 
+    def test_func(self):
+        return is_admin(self.request.user) or is_organizer(self.request.user)
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You don't have permission to create categories.")
+        return redirect("no-permission")
+
     def post(self, request, *args, **kwargs):
         category_form = CategoryForm(request.POST)
         if category_form.is_valid():
             category_form.save()
-
-            if messages.success:
-                messages.success(request,"Category Created Successfully")
-                return redirect("create-category")
-            elif messages.error:
-                messages.error(request,"something wrong")
-                return redirect("create-category")
+            messages.success(request,"Category Created Successfully")
+            return redirect("create-category")
+        else:
+            messages.error(request,"Please correct the errors below")
+            return render(request, self.template_name, {"category_form": category_form})
 
 
 
@@ -314,9 +328,9 @@ class CreateCategoryEvent(CreateView):
 #     return render(request,"create_participant.html",context)
 
 @login_required
-def event_detials(request,event_id):
+def event_details(request,event_id):
     event = Event.objects.get(id = event_id)
-    return render(request,"event_detials.html",{"event":event})
+    return render(request,"event_details.html",{"event":event})
 
 
 
@@ -337,13 +351,13 @@ def rspv_event(request,event_id):
     event = Event.objects.get(id = event_id)
 
     if request.user in event.rspv.all():
-        messages.success(request,"you have already rspv to this event")
+        messages.success(request,"You have already RSVP'd to this event")
     else:
         event.rspv.add(request.user)
         event.save()
         
-        subject = f"Rspv conformation for {event.name}"
-        message = f"your successfully RSPV for {event.name}"
+        subject = f"RSVP confirmation for {event.name}"
+        message = f"You have successfully RSVP'd for {event.name}"
         recipient_list = [request.user.email]
 
         send_mail(subject,message,settings.EMAIL_HOST_USER,recipient_list)
