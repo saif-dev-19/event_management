@@ -8,13 +8,13 @@
           </a>
           <div class="hidden md:flex space-x-8">
             <a href="{% url 'about-us' %}" class="text-white/80 hover:text-white transition-colors flex items-center">
-              <i class="fas fa-info-circle mr-2"></i>About
+              <i class="fas fa-info-circle mr-2 mt-1"></i>About
             </a>
             <a href="{% url 'sign-in' %}?next={% url 'event-dashboard' %}" class="text-white/80 hover:text-white transition-colors flex items-center">
-              <i class="fas fa-calendar-alt mr-2"></i>Events
+              <i class="fas fa-calendar-alt mr-2 mt-1"></i>Events
             </a>
             <a href="{% url 'contact' %}" class="text-white/80 hover:text-white transition-colors flex items-center">
-              <i class="fas fa-envelope mr-2"></i>Contact
+              <i class="fas fa-envelope mr-2 mt-1"></i>Contact
             </a>
           </div>
           <div class="flex items-center space-x-4">
@@ -54,7 +54,7 @@
             <a href="{% url 'about-us' %}" class="block py-3 px-4 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center">
               <i class="fas fa-info-circle mr-3"></i>About
             </a>
-            <a href="{% url 'sign-in' %}?next={% url 'event-dashboard' %}" class="block py-3 px-4 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center">
+            <a href="{% url 'sign-in' %}?next={% url 'home' %}" class="block py-3 px-4 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center">
               <i class="fas fa-calendar-alt mr-3"></i>Events
             </a>
             <a href="{% url 'contact' %}" class="block py-3 px-4 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center">
