@@ -1,3 +1,5 @@
+from http.client import HTTPResponse
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import Group
@@ -23,6 +25,8 @@ def send_activation_email(sender, instance, created, **kwargs):
             send_mail(subject, message,settings.EMAIL_HOST_USER , recipient_list)
         except Exception as e:
             print(f"Failed to sent email to {instance.email}: {str(e)}")
+            return HTTPResponse(f"Failed to send activation email: {str(e)}", status=500)
+            
 
 @receiver(post_save, sender=User)
 def assign_role(sender, instance, created, **kwargs):

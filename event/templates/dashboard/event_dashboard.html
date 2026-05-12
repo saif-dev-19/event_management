@@ -71,6 +71,10 @@
                                     <i class="fas fa-map-marker-alt mr-2 text-purple-300"></i>
                                     <span>{{ event.location }}</span>
                                 </div>
+                                <div class="flex items-center text-white/80 mb-3">
+                                    <i class="fas fa-users mr-2 text-purple-300"></i>
+                                    <span>{{ event.current_rsvp_count }} / {{ event.capacity }} seats booked</span>
+                                </div>
                                 {% if event.description %}
                                     <p class="text-white/70 text-sm line-clamp-2">{{ event.description|truncatewords:15 }}</p>
                                 {% endif %}
@@ -81,14 +85,32 @@
                                     <i class="fas fa-eye mr-2"></i>View Details
                                 </a>
                                 
-                                {% if type == "upcoming" or type == "all" %}
-                                    <form action="{% url 'rspv-event' event.id %}" method="POST" class="flex">
-                                        {% csrf_token %}
-                                        <button class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 flex items-center">
-                                            <i class="fas fa-calendar-check mr-2"></i>RSVP
-                                        </button>
-                                    </form>
-                                {% endif %}
+                                    {% load tz %}
+                                        {% now "Y-m-d" as today %}
+
+                                    {% if event.date|date:"Y-m-d" >= today %}
+                                        <form action="{% if not event.has_rsvped and not event.is_at_capacity %}{% url 'rspv-event' event.id %}{% endif %}" method="POST" class="flex">
+                                            {% csrf_token %}
+                                            <button
+                                                type="submit"
+                                                {% if event.has_rsvped %}
+                                                disabled class="bg-gray-400 cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold"
+                                                {% elif event.is_at_capacity %}
+                                                disabled class="bg-gray-500 cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold"
+                                                {% else %}
+                                                class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 flex items-center"{% endif %}
+                                            >
+                                                <i class="fas fa-calendar-check mr-2"></i>
+                                                {% if event.has_rsvped %}Already RSVP{% elif event.is_at_capacity %}Full{% else %}RSVP{% endif %}
+                                            </button>
+                                                </form>
+                                            {% else %}
+                                                <span
+                                                    class="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold text-center inline-flex items-center justify-center cursor-not-allowed opacity-80"
+                                                >
+                                                    <i class="fas fa-lock mr-2"></i>Event Closed
+                                                </span>
+                                            {% endif %}
                             </div>
                         </div>
                     </div>

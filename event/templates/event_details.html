@@ -38,7 +38,11 @@
         <div class="grid grid-cols-1">
           <div class="bg-white p-6 rounded-lg shadow-sm">
             <!-- Creation Date -->
-        <div class="text-gray-600 mb-6">Event Date: {{event.date}} <br> Event Time: {{event.time}}</div>
+        <div class="text-gray-600 mb-6">
+          Event Date: {{event.date}} <br>
+          Event Time: {{event.time}} <br>
+          Seats Booked: {{ event.rsvp_count }} / {{ event.capacity }}
+        </div>
         <!-- Sidebar -->
         <div class="grid grid-cols-2 lg:grid-cols-2">
           <!-- Task Description -->
@@ -47,17 +51,40 @@
             <p class="text-gray-600">
               {{event.description}}
             </p>
+            {% if can_manage_event %}
+              <div class="mt-6">
+                <h3 class="text-lg font-bold mb-3">RSVP Participants</h3>
+                {% if event.rspv.all %}
+                  <div class="space-y-2">
+                    {% for participant in event.rspv.all %}
+                      <div class="rounded-lg bg-gray-100 p-3 text-gray-700">
+                        <div class="font-semibold">{{ participant.get_full_name|default:participant.username }}</div>
+                        <div class="text-sm text-gray-500">{{ participant.email|default:"No email" }}</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <p class="text-gray-500">No RSVP participants yet.</p>
+                {% endif %}
+              </div>
+            {% endif %}
           </div>
 
           <!-- Assets -->
           <div class="bg-white p-6 rounded-lg shadow-sm">
             <h2 class="text-xl font-bold mb-4">ASSETS</h2>
             <div class="space-y-4">
-              <img
-                src="{{event.asset.url}}"
-                alt="Task Manager App Screenshot 1"
-                class="w-full rounded-lg"
-              />
+              {% if event.asset %}
+                <img
+                  src="{{event.asset.url}}"
+                  alt="{{ event.name }}"
+                  class="w-full rounded-lg"
+                />
+              {% else %}
+                <div class="w-full rounded-lg bg-gray-100 p-8 text-center text-gray-500">
+                  No image uploaded for this event.
+                </div>
+              {% endif %}
               
             </div>
           </div>

@@ -86,11 +86,33 @@
                                         <i class="fas fa-map-marker-alt mr-2 text-purple-300"></i>
                                         <span>{{ event.location }}</span>
                                     </div>
+                                    <div class="flex items-center text-white/80 mt-3">
+                                        <i class="fas fa-users mr-2 text-purple-300"></i>
+                                        <span>{{ event.rsvp_count }} / {{ event.capacity }} seats booked</span>
+                                    </div>
+                                    <div class="mt-4">
+                                        <h4 class="text-white font-semibold mb-2">RSVP Participants</h4>
+                                        {% if event.rspv.all %}
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                {% for participant in event.rspv.all %}
+                                                    <div class="bg-white/10 rounded-lg px-3 py-2 text-white/80 text-sm">
+                                                        <div class="font-semibold text-white">{{ participant.get_full_name|default:participant.username }}</div>
+                                                        <div class="text-white/60">{{ participant.email|default:"No email" }}</div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <p class="text-white/60 text-sm">No RSVP participants yet.</p>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 
                                 <div class="flex flex-col sm:flex-row gap-3">
                                     <a href="{% url 'event-details' event.id %}" class="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center">
                                         <i class="fas fa-eye mr-2"></i>View Details
+                                    </a>
+                                    <a href="{% url 'update-event' event.id %}" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
+                                        <i class="fas fa-edit mr-2"></i>Update
                                     </a>
                                     <form action='{% url "delete-event" event.id %}' method="POST" class="flex">
                                         {% csrf_token %}

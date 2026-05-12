@@ -201,15 +201,28 @@
                         <p class="text-white/80 mb-4 line-clamp-3">
                             {{ event.description|truncatewords:20 }}
                         </p>
+                        <div class="flex items-center text-white/70 mb-4">
+                            <i class="fas fa-users mr-2"></i>
+                            <span class="text-sm">{{ event.current_rsvp_count }} / {{ event.capacity }} seats booked</span>
+                        </div>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center text-white/60">
                                 <i class="fas fa-map-marker-alt mr-2"></i>
                                 <span class="text-sm">{{ event.location }}</span>
                             </div>
-                            <form action="{% url 'rspv-event' event.id %}" method="post">
+                            <form action="{% if not event.has_rsvped and not event.is_at_capacity %}{% url 'rspv-event' event.id %}{% endif %}" method="post">
                                 {% csrf_token %}
-                                <button class="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">
-                                    <i class="fas fa-calendar-check mr-2"></i>RSVP
+                                <button
+                                    type="submit"
+                                    {% if event.has_rsvped %}
+                                    disabled class="bg-gray-400 cursor-not-allowed text-white px-6 py-2 rounded-lg font-semibold"
+                                    {% elif event.is_at_capacity %}
+                                    disabled class="bg-gray-500 cursor-not-allowed text-white px-6 py-2 rounded-lg font-semibold"
+                                    {% else %}
+                                    class="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+                                    {% endif %}
+                                >
+                                    <i class="fas fa-calendar-check mr-2"></i>{% if event.has_rsvped %}Already RSVP{% elif event.is_at_capacity %}Full{% else %}RSVP{% endif %}
                                 </button>
                             </form>
                         </div>

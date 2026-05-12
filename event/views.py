@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test,permi
 from django.core.mail import send_mail
 from django.conf import settings
 from django.views.generic import CreateView,UpdateView,DeleteView
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 # Create your views here.
@@ -21,8 +21,27 @@ User = get_user_model()
 def is_users(user):
     return user.groups.filter(name = 'User').exists()
 
+
+def mark_user_rsvp_status(events, user):
+    events = list(events)
+    for event in events:
+        event.current_rsvp_count = event.rspv.count()
+        event.current_seats_left = max(event.capacity - event.current_rsvp_count, 0)
+        event.is_at_capacity = event.current_rsvp_count >= event.capacity
+
+    if not user.is_authenticated:
+        for event in events:
+            event.has_rsvped = False
+        return events
+
+    rsvped_event_ids = set(user.rspv_events.values_list("id", flat=True))
+    for event in events:
+        event.has_rsvped = event.id in rsvped_event_ids
+    return events
+
+
 def home_page(request):
-    events = Event.objects.order_by('date')[:6]
+    events = mark_user_rsvp_status(Event.objects.order_by('date')[:6], request.user)
     context = {"events": events}
     return render(request,"home_page.html", context)
 
@@ -40,13 +59,13 @@ def dashboard(request):
         return redirect("user-dashboard")
     elif is_admin(request.user):
         return redirect("admin-dashboard")
-    
+
     return redirect('no-permission')
 
 
 @user_passes_test(is_organizer,login_url="no-permission")
 def organizer_dashboard(request):
-    events = Event.objects.prefetch_related('participants').all()
+    events = Event.objects.prefetch_related('participants', 'rspv').all()
     return render(request,"dashboard/organizer_dashboard.html",{'events':events})
 
 
@@ -55,7 +74,7 @@ def user_dashboard(request):
     type = request.GET.get('type','all')
 
     cr_day = datetime.now().date()
-    events = Event.objects.prefetch_related('participants').all()
+    events = Event.objects.prefetch_related('participants', 'rspv').all()
     participant = User.objects.all()
     print(participant)
 
@@ -104,7 +123,7 @@ def user_dashboard(request):
     
     context = {
         'counts' : counts,
-        'result' : result,
+        'result' : mark_user_rsvp_status(result, request.user),
         'type':type,
         'search_name' : search_name,
         'search_location' : search_location,
@@ -142,24 +161,35 @@ def is_admin_or_organizer(user):
     return is_admin(user) or is_organizer(user)
 
 
+def event_dashboard_name_for(user):
+    if is_organizer(user):
+        return "organizer-dashboard"
+    return "admin-dashboard"
+
+
+def event_dashboard_url_for(user):
+    return reverse(event_dashboard_name_for(user))
+
+
 
 class CreateEventView(UserPassesTestMixin,CreateView):
     model = Event
     form_class = EventModelForm
     template_name = "event_form.html"
-    success_url = reverse_lazy("event-dashboard")
+    success_url = reverse_lazy("admin-dashboard")
 
     def test_func(self):
         return is_admin(self.request.user) or is_organizer(self.request.user)
 
-    def handle_no_permission(self):
-        messages.error(self.request, "You don't have permission to create events.")
-        return redirect("no-permission") 
-    
+    # def handle_no_permission(self):
+    #     messages.error(self.request, "You don't have permission to create events.")
+    #     return redirect("no-permission")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["event_form"] = context.get("form") or EventModelForm()
         context["is_update"] = False
+        context["dashboard_url"] = event_dashboard_url_for(self.request.user)
         return context
     
     def post(self, request, *args, **kwargs):
@@ -167,9 +197,13 @@ class CreateEventView(UserPassesTestMixin,CreateView):
         if event_form.is_valid():
             event = event_form.save()
             messages.success(request, "Event created successfully")
-            return redirect("event-dashboard")
+            return redirect(event_dashboard_name_for(request.user))
         messages.error(request, "Please correct the errors below")
-        return render(request, self.template_name, {"event_form": event_form, "is_update": False})
+        return render(request, self.template_name, {
+            "event_form": event_form,
+            "is_update": False,
+            "dashboard_url": event_dashboard_url_for(request.user),
+        })
     
     
     
@@ -219,6 +253,7 @@ class UpdateEventView(UserPassesTestMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context["event_form"] = context.get("form") or self.get_form()
         context["is_update"] = True
+        context["dashboard_url"] = event_dashboard_url_for(self.request.user)
         return context
     
     def post(self, request, *args, **kwargs):
@@ -227,9 +262,14 @@ class UpdateEventView(UserPassesTestMixin, UpdateView):
         if event_form.is_valid():
             event = event_form.save()
             messages.success(request, "Event updated successfully")
-            return redirect("update-event", id=event.id)
+            return redirect(event_dashboard_name_for(request.user))
         messages.error(request, "Please correct the errors below")
-        return render(request, self.template_name, {"event_form": event_form, "is_update": True, "event": self.object})
+        return render(request, self.template_name, {
+            "event_form": event_form,
+            "is_update": True,
+            "event": self.object,
+            "dashboard_url": event_dashboard_url_for(request.user),
+        })
 
 
 
@@ -329,8 +369,12 @@ class CreateCategoryEvent(UserPassesTestMixin, CreateView):
 
 @login_required
 def event_details(request,event_id):
-    event = Event.objects.get(id = event_id)
-    return render(request,"event_details.html",{"event":event})
+    event = Event.objects.prefetch_related('rspv').get(id = event_id)
+    context = {
+        "event": event,
+        "can_manage_event": is_admin(request.user) or is_organizer(request.user),
+    }
+    return render(request,"event_details.html",context)
 
 
 
@@ -352,9 +396,10 @@ def rspv_event(request,event_id):
 
     if request.user in event.rspv.all():
         messages.success(request,"You have already RSVP'd to this event")
+    elif event.is_full:
+        messages.error(request, "Sorry, this event is already full.")
     else:
         event.rspv.add(request.user)
-        event.save()
         
         subject = f"RSVP confirmation for {event.name}"
         message = f"You have successfully RSVP'd for {event.name}"

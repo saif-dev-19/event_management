@@ -33,6 +33,12 @@ class StyledFormMixin:
                     'class':self.default_classes,
                     'placeholder': f"Enter {field.label.lower()}"
                 })
+            elif isinstance(field.widget, forms.NumberInput):
+                field.widget.attrs.update({
+                    'class': self.default_classes,
+                    'placeholder': f"Enter {field.label.lower()}",
+                    'min': 1
+                })
             elif isinstance(field.widget, forms.EmailField):
                 field.widget.attrs.update({
                     'class':self.default_classes,
@@ -82,7 +88,7 @@ class EventModelForm(StyledFormMixin,forms.ModelForm):
     class Meta:
         model = Event
 
-        fields =['name','description','date','time','location','category','asset']
+        fields =['name','description','date','time','location','capacity','category','asset']
         widgets = {
             'date' : forms.DateInput(attrs={'type':'date'}),
             'time' : forms.TimeInput(attrs={'type':'time'}),

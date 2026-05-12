@@ -1,164 +1,452 @@
-# Event Management
+# EventHook - Event Management System
 
-A simple, extensible event management application. This repository contains the source code and resources for creating, listing, and managing events, attendees, and related workflows. The README below is intentionally framework-agnostic so it is easy to adapt to the actual stack used in this repo — if you tell me which stack (e.g., Node.js/Express, Django, Rails, Laravel, etc.), I can tailor these instructions and examples.
+EventHook is a role-based event management web application built with Django. It helps organizers create and manage events, users discover and RSVP to events, and admins control users, roles, categories, and event data from dedicated dashboards.
 
-Table of Contents
-- About
-- Features
-- Tech stack (placeholder)
-- Project structure
-- Quick start
-  - Prerequisites
-  - Clone
-  - Install dependencies (examples)
-  - Configuration (.env)
-  - Database & migrations
-  - Run
-- Tests
-- Deployment
-- Contributing
-- License
-- Contact
+The project is suitable for university clubs, programming communities, seminar teams, workshop organizers, and local event groups that need a simple platform for publishing events and tracking attendees.
 
-About
------
-Event Management is built to help organizers create and manage events, track attendees, and coordinate schedules. It is intended to be a starting point that can be extended with authentication, ticketing, payment, notifications, and calendar integrations.
+## Key Features
 
-Features
---------
-- Create / update / delete events
-- List and filter upcoming and past events
-- Manage attendees and registrations
-- Event details and simple scheduling
-- API endpoints for integration (if applicable)
-- Admin interface for event management (if included)
+### Authentication and User Management
 
-Tech stack (placeholder)
-------------------------
-Please update this section with the actual stack used in the repository. Example entries:
-- Backend: Node.js + Express OR Python + Django OR Ruby on Rails
-- Database: PostgreSQL / MySQL / SQLite
-- Frontend: React / Vue / plain server-rendered HTML
-- Testing: Jest / pytest / RSpec
-- Deployment: Docker / Heroku / Vercel / AWS
+- User registration and login
+- Logout support
+- Password change and password reset flow
+- Custom user model with profile image and phone number
+- Profile view and profile update
+- Role-based access using Django groups
 
-Project structure
------------------
-A typical layout (update to match your repo):
-- /src or /app — application source code
-- /api — server API endpoints
-- /frontend — client-side app
-- /migrations — database migrations
-- /tests — automated tests
-- .env.example — example environment variables
-- README.md — this file
+### Role-Based Dashboards
 
-Quick start
------------
+The system supports three main roles:
 
-1. Prerequisites
-   - Git
-   - The runtime for the project (Node.js v16+, Python 3.8+, Ruby, etc.)
-   - Database (Postgres/MySQL) if used
-   - Docker (optional)
+- **Admin**: manages users, roles, groups, events, and system data
+- **Organizer**: creates, updates, deletes, and monitors events
+- **User**: browses events and RSVP registration status
 
-2. Clone the repo
-   git clone https://github.com/saif-dev-19/event_management.git
-   cd event_management
+### Event Management
 
-3. Install dependencies
-   Update the commands below according to the actual project stack.
+- Create events with name, description, date, time, location, category, image, and seat capacity
+- Update existing events
+- Delete events
+- View event details
+- Upload and display event images
+- Categorize events
+- Track upcoming, past, and total events
 
-   Node (example)
-   - cd backend
-   - npm install
-   - cd ../frontend
-   - npm install
+### RSVP and Capacity Management
 
-   Python / Django (example)
-   - python -m venv .venv
-   - source .venv/bin/activate
-   - pip install -r requirements.txt
+- Users can RSVP to upcoming events
+- Duplicate RSVP is prevented per user
+- RSVP status is shown only for the logged-in user
+- Event capacity/seat limit is enforced
+- RSVP is blocked when an event is full
+- Seat booking count is displayed, for example: `12 / 50 seats booked`
+- RSVP confirmation email is sent after successful registration
 
-   Ruby on Rails (example)
-   - bundle install
-   - yarn install (if using webpacker)
+### Organizer and Admin Participant Tracking
 
-4. Configuration
-   - Copy the example environment file and fill in secrets:
-     cp .env.example .env
-   - Edit .env and set:
-     - DATABASE_URL or DB_HOST, DB_USER, DB_PASS
-     - SECRET_KEY or APP_SECRET
-     - Other 3rd-party API keys
+- Organizer dashboard shows RSVP participants for each event
+- Admin event management view shows RSVP participants for each event
+- Event detail page shows RSVP participant list to admins and organizers
+- Participant name and email are displayed when available
 
-   Example .env variables to include:
-   - DATABASE_URL=postgres://user:pass@localhost:5432/event_db
-   - APP_HOST=localhost
-   - APP_PORT=8000
-   - SECRET_KEY=your-secret-key
+### Search and Filtering
 
-5. Database & migrations
-   - Node/TypeORM/Sequelize example:
-     npm run migrate
-   - Django:
-     python manage.py migrate
-   - Rails:
-     rails db:create db:migrate
+- Search events by name
+- Search/filter by location in dashboard logic
+- View all, upcoming, and past events
+- Dashboard cards display useful event and participant counts
 
-6. Run the app
-   - Node:
-     npm run dev
-   - Django:
-     python manage.py runserver
-   - Rails:
-     rails server
+### Media Support
 
-7. Access
-   - Open http://localhost:8000 (or the configured port) in your browser.
+- Event image uploads through `ImageField`
+- Profile image uploads through `ImageField`
+- Local media files are served through `/media/`
+- Default profile image support
 
-Tests
------
-- Run unit and integration tests using the project's test command.
-  - Node (Jest): npm test
-  - Python (pytest): pytest
-  - Rails (RSpec): bundle exec rspec
+## Tech Stack
 
-Continuous Integration
-----------------------
-If you use GitHub Actions, include a workflow in .github/workflows/ to run tests on push and PRs.
+- **Backend**: Django 5.2.3
+- **Language**: Python
+- **Database**: SQLite by default, PostgreSQL-ready through `dj-database-url` and `psycopg2-binary`
+- **Frontend**: Django Templates
+- **Styling**: Tailwind CSS, custom CSS, Font Awesome icons
+- **Authentication**: Django Authentication System
+- **Email**: SMTP email backend
+- **Media Handling**: Pillow + Django media files
+- **Debugging**: Django Debug Toolbar
 
-Deployment
-----------
-Common approaches:
-- Docker: provide a Dockerfile and docker-compose.yml to run services locally and in production.
-- PaaS: Heroku / Render / Vercel — ensure build scripts and Procfile are present.
-- Cloud: AWS ECS / EKS / App Runner; configure secrets and managed database.
+## Project Structure
 
-Contributing
-------------
-Contributions are welcome! Please follow these steps:
-1. Fork the repository
-2. Create a feature branch: git checkout -b feature/my-feature
-3. Commit your changes: git commit -m "Add my feature"
-4. Push to your branch and open a Pull Request
-5. Add tests and documentation for your changes
+```text
+event_management/
+├── core/
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── home_page.html
+│   │   ├── logged_nav.html
+│   │   └── non_logged_nav.html
+│   └── views.py
+├── event/
+│   ├── migrations/
+│   ├── templates/
+│   │   ├── dashboard/
+│   │   │   ├── dashboard.html
+│   │   │   ├── event_dashboard.html
+│   │   │   └── organizer_dashboard.html
+│   │   ├── category_form.html
+│   │   ├── event_details.html
+│   │   └── event_form.html
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── users/
+│   ├── templates/
+│   │   ├── accounts/
+│   │   ├── admin/
+│   │   └── registration/
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── event_management/
+│   ├── settings.py
+│   ├── urls.py
+│   ├── asgi.py
+│   └── wsgi.py
+├── media/
+├── static/
+│   └── css/
+├── manage.py
+├── requirements.txt
+├── package.json
+└── README.md
+```
 
-Please follow the coding style used in the repository and keep commits atomic and well-described.
+## Main Models
 
-License
--------
-This project does not currently specify a license. Add a LICENSE file (for example, MIT) to clarify usage and distribution rights.
+### Event
 
-Contact
--------
-Repository: https://github.com/saif-dev-19/event_management
-Author / Maintainer: saif-dev-19
+Stores event information.
 
-Customizing this README
------------------------
-I created this README template with general guidance and placeholders so it works regardless of the specific framework used. To make it fully actionable, tell me which backend and frontend frameworks, database, and test runner the repo uses and I will update:
-- exact install commands
-- sample .env values
-- run/migrate/test commands
-- example Dockerfile and CI workflow
+Important fields:
+
+- `name`
+- `description`
+- `date`
+- `time`
+- `location`
+- `capacity`
+- `asset`
+- `category`
+- `rspv`
+
+The `rspv` field is a many-to-many relationship with users. This allows the project to track RSVP status per user instead of globally marking an event as RSVPed.
+
+### Category
+
+Stores event category information.
+
+Important fields:
+
+- `name`
+- `description`
+
+### CustomUser
+
+Extends Django's `AbstractUser`.
+
+Extra fields:
+
+- `profile_image`
+- `number`
+
+## Main URLs
+
+### Public Pages
+
+| URL | Purpose |
+| --- | --- |
+| `/` | Home page with featured events |
+| `/event/about/` | About page |
+| `/event/contact/` | Contact page |
+| `/event/event/<id>/details/` | Event details |
+
+### User URLs
+
+| URL | Purpose |
+| --- | --- |
+| `/users/sign-up/` | Register |
+| `/users/sign-in/` | Login |
+| `/users/logout/` | Logout |
+| `/users/profile/` | Profile |
+| `/users/edit-profile/` | Update profile |
+| `/users/password-change/` | Change password |
+| `/users/password-reset/` | Reset password |
+
+### Dashboard URLs
+
+| URL | Purpose |
+| --- | --- |
+| `/event/dashboard/` | Redirects user to the correct dashboard |
+| `/event/event-dashboard/` | Normal user dashboard |
+| `/event/organizer-dashboard/` | Organizer dashboard |
+| `/users/admin-dashboard` | Admin dashboard |
+
+### Event Management URLs
+
+| URL | Purpose |
+| --- | --- |
+| `/event/create-event/` | Create event |
+| `/event/update-event/<id>/` | Update event |
+| `/event/delete-event/<id>/` | Delete event |
+| `/event/create-category/` | Create category |
+| `/event/event/<id>/rspv-event/` | RSVP to event |
+
+## Installation and Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/saif-dev-19/event_management.git
+cd event_management
+```
+
+### 2. Create and Activate Virtual Environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+On Windows:
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3. Install Python Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+### 5. Create `.env` File
+
+Create a `.env` file in the project root.
+
+```env
+SECRET_KEY=your-django-secret-key
+DEBUG=True
+
+EMAIL_HOST=smtp.gmail.com
+EMAIL_USE_TLS=True
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+```
+
+Optional PostgreSQL-style variables are already supported in the code comments:
+
+```env
+DB_NAME=event_management
+USER=postgres
+PASSWORD=your-password
+HOST=localhost
+PORT=5432
+```
+
+By default, the project uses SQLite.
+
+### 6. Run Migrations
+
+```bash
+python manage.py migrate
+```
+
+### 7. Create Superuser
+
+```bash
+python manage.py createsuperuser
+```
+
+### 8. Build Tailwind CSS
+
+```bash
+npm run build:tailwind
+```
+
+For development watch mode:
+
+```bash
+npm run watch:tailwind
+```
+
+### 9. Run Development Server
+
+```bash
+python manage.py runserver
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000/
+```
+
+## Role Setup
+
+This project uses Django groups for role-based access.
+
+Create these groups from the admin panel or the app's group management page:
+
+- `Admin`
+- `Organizer`
+- `User`
+
+Then assign users to the correct group.
+
+Important:
+
+- Admin dashboard requires the `Admin` group.
+- Organizer dashboard requires the `Organizer` group.
+- User event dashboard requires the `User` group.
+
+## RSVP Flow
+
+1. User logs in.
+2. User opens the event dashboard or home page.
+3. User clicks RSVP on an event.
+4. The system checks:
+   - Has this user already RSVPed?
+   - Is the event full?
+5. If valid, the user is added to the event RSVP list.
+6. A confirmation email is sent.
+7. The button changes to `Already RSVP` for that specific user only.
+
+## Seat Capacity Flow
+
+Each event has a `capacity` field.
+
+Example:
+
+```text
+Capacity: 50
+RSVP count: 50
+Status: Full
+```
+
+When RSVP count reaches capacity:
+
+- New RSVP is blocked
+- Button shows `Full`
+- Seat count still appears on event cards
+
+## Useful Commands
+
+Run Django checks:
+
+```bash
+python manage.py check
+```
+
+Run migrations:
+
+```bash
+python manage.py migrate
+```
+
+Create migrations:
+
+```bash
+python manage.py makemigrations
+```
+
+Run tests:
+
+```bash
+python manage.py test
+```
+
+Build Tailwind:
+
+```bash
+npm run build:tailwind
+```
+
+## Current Test Status
+
+The project currently has test files, but no meaningful automated tests are implemented yet. Recommended future tests:
+
+- RSVP duplicate prevention
+- RSVP capacity limit
+- Admin dashboard access
+- Organizer dashboard access
+- Event create/update/delete permissions
+- Media upload behavior
+- Profile update behavior
+
+## Deployment Notes
+
+For production deployment:
+
+- Set `DEBUG=False` or `DEBUG=production`
+- Use a secure `SECRET_KEY`
+- Configure a production database such as PostgreSQL
+- Configure email SMTP credentials
+- Serve static files properly
+- Serve media files through a production-ready storage solution or web server
+- Do not commit `.env`, database files, or uploaded media containing private data
+
+The project already includes dependencies for PostgreSQL support:
+
+- `dj-database-url`
+- `psycopg2-binary`
+
+## Recommended Future Improvements
+
+- Add automated tests
+- Remove development `print()` debugging statements
+- Improve organizer ownership so organizers only manage their own events
+- Add ticket/payment support
+- Add event capacity editing rules after RSVP starts
+- Add exportable RSVP participant list
+- Add event reminder emails
+- Add calendar integration
+- Add REST API endpoints
+- Improve deployment configuration for Render or another hosting platform
+
+## Project Summary
+
+EventHook is a practical event management system with real-world features:
+
+- Authentication
+- Role-based authorization
+- Admin, organizer, and user dashboards
+- Event CRUD
+- Category management
+- RSVP management
+- Seat capacity control
+- Email confirmation
+- Image upload
+- Participant tracking
+
+It is more than a basic CRUD project because it includes access control, event attendance logic, capacity validation, media handling, and dashboard-based workflows.
+
+## Author
+
+**Mahfuz / saif-dev-19**
+
+Repository:
+
+```text
+https://github.com/saif-dev-19/event_management
+```

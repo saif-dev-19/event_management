@@ -110,6 +110,7 @@ def sign_up(request):
             print("Form is not valid")
     return render(request,"registration/register.html",{'form':form})
 
+
 def sign_in(request):
     form = LoginForm()
     if request.method == "POST":
@@ -168,7 +169,7 @@ def admin_dashboard(request):
             group.group_name = "No Group Assigned"
 
     cr_day = datetime.now().date()
-    events = Event.objects.prefetch_related('participants').all()
+    events = Event.objects.prefetch_related('participants', 'rspv').all()
     participant = Participant.objects.all()
     print(participant)
 
