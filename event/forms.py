@@ -25,45 +25,54 @@ class StyledFormMixin:
         self.apply_styled_widget()
 
     '''Mixing to apply to form field'''
-    default_classes = "border border-gray-300 w-full rounded-lg shadow-sm focus-outline-none focus:border-rose-500 focus:ring-blue-500"
+    default_classes = "w-full"
+
+    def get_placeholder(self, field_name, field):
+        label = field.label or field_name.replace("_", " ")
+        return f"Enter {label.lower()}"
+
     def apply_styled_widget(self):
         for field_name,field in self.fields.items():
             if isinstance(field.widget, forms.TextInput):
                 field.widget.attrs.update({
                     'class':self.default_classes,
-                    'placeholder': f"Enter {field.label.lower()}"
+                    'placeholder': self.get_placeholder(field_name, field)
                 })
             elif isinstance(field.widget, forms.NumberInput):
                 field.widget.attrs.update({
                     'class': self.default_classes,
-                    'placeholder': f"Enter {field.label.lower()}",
+                    'placeholder': self.get_placeholder(field_name, field),
                     'min': 1
                 })
-            elif isinstance(field.widget, forms.EmailField):
+            elif isinstance(field.widget, forms.EmailInput):
                 field.widget.attrs.update({
                     'class':self.default_classes,
-                    'placeholder': f"Enter {field.label.lower()}"
+                    'placeholder': self.get_placeholder(field_name, field)
+                })
+            elif isinstance(field.widget, forms.PasswordInput):
+                field.widget.attrs.update({
+                    'class': self.default_classes,
+                    'placeholder': self.get_placeholder(field_name, field)
                 })
             elif isinstance(field.widget, forms.Textarea):
                 field.widget.attrs.update({
                     'class':self.default_classes,
-                    'placeholder':f"Enter {field.label.lower()}",
+                    'placeholder': self.get_placeholder(field_name, field),
                     'rows':5
                 })
             elif isinstance(field.widget, forms.DateInput):
                 field.widget.attrs.update({
-                    'class':"border border-gray-300 rounded-lg shadow-sm focus-outline-none focus:border-rose-500 focus:ring-rose-500"
+                    'class': self.default_classes
                 })
             elif isinstance(field.widget, forms.TimeInput):
                 field.widget.attrs.update({
-                    'class':"border border-gray-300 rounded-lg shadow-sm focus-outline-none focus:border-rose-500 focus:ring-rose-500"
+                    'class': self.default_classes
                 })
             elif isinstance(field.widget, forms.CheckboxSelectMultiple):
                 field.widget.attrs.update({
-                    'class':"space-y-2"
+                    'class': "space-y-2 rounded-xl bg-white/10 p-4"
                 })
             else:
-                print("Inside else")
                 field.widget.attrs.update({
                     'class': self.default_classes
                 })

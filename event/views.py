@@ -40,6 +40,14 @@ def mark_user_rsvp_status(events, user):
     return events
 
 
+def can_manage_event(user, event):
+    if not user.is_authenticated:
+        return False
+    if is_admin(user):
+        return True
+    return is_organizer(user) and event.created_by_id == user.id
+
+
 def home_page(request):
     events = mark_user_rsvp_status(Event.objects.order_by('date')[:6], request.user)
     context = {"events": events}
@@ -54,9 +62,9 @@ def show_event(request):
 @login_required
 def dashboard(request):
     if is_organizer(request.user):
-        return redirect('manager-dashboard')
+        return redirect('organizer-dashboard')
     elif is_users(request.user):
-        return redirect("user-dashboard")
+        return redirect("event-dashboard")
     elif is_admin(request.user):
         return redirect("admin-dashboard")
 
@@ -65,16 +73,23 @@ def dashboard(request):
 
 @user_passes_test(is_organizer,login_url="no-permission")
 def organizer_dashboard(request):
-    events = Event.objects.prefetch_related('participants', 'rspv').all()
+    events = Event.objects.select_related('created_by', 'category').prefetch_related('participants', 'rspv', 'created_by__groups').filter(created_by=request.user)
     return render(request,"dashboard/organizer_dashboard.html",{'events':events})
 
 
-@user_passes_test(is_users,login_url="no-permission")
+@login_required
 def user_dashboard(request):
+    if is_organizer(request.user):
+        return redirect("organizer-dashboard")
+    if is_admin(request.user):
+        return redirect("admin-dashboard")
+    if not is_users(request.user):
+        return redirect("no-permission")
+
     type = request.GET.get('type','all')
 
     cr_day = datetime.now().date()
-    events = Event.objects.prefetch_related('participants', 'rspv').all()
+    events = Event.objects.select_related('created_by', 'category').prefetch_related('participants', 'rspv', 'created_by__groups').all()
     participant = User.objects.all()
     print(participant)
 
@@ -195,7 +210,10 @@ class CreateEventView(UserPassesTestMixin,CreateView):
     def post(self, request, *args, **kwargs):
         event_form = EventModelForm(request.POST, request.FILES)
         if event_form.is_valid():
-            event = event_form.save()
+            event = event_form.save(commit=False)
+            event.created_by = request.user
+            event.save()
+            event_form.save_m2m()
             messages.success(request, "Event created successfully")
             return redirect(event_dashboard_name_for(request.user))
         messages.error(request, "Please correct the errors below")
@@ -243,7 +261,7 @@ class UpdateEventView(UserPassesTestMixin, UpdateView):
     template_name = "event_form.html"
 
     def test_func(self):
-        return is_admin(self.request.user) or is_organizer(self.request.user)
+        return can_manage_event(self.request.user, self.get_object())
 
     def handle_no_permission(self):
         messages.error(self.request, "You don't have permission to update events.")
@@ -291,7 +309,7 @@ class DeleteEventView(UserPassesTestMixin, DeleteView):
     success_url = reverse_lazy("dashboard")
 
     def test_func(self):
-        return is_admin(self.request.user) or is_organizer(self.request.user)
+        return can_manage_event(self.request.user, self.get_object())
 
     def handle_no_permission(self):
         messages.error(self.request, "You don't have permission to delete events.")
@@ -369,10 +387,11 @@ class CreateCategoryEvent(UserPassesTestMixin, CreateView):
 
 @login_required
 def event_details(request,event_id):
-    event = Event.objects.prefetch_related('rspv').get(id = event_id)
+    event = Event.objects.select_related('created_by', 'category').prefetch_related('rspv', 'created_by__groups').get(id = event_id)
+    event_can_manage = can_manage_event(request.user, event)
     context = {
         "event": event,
-        "can_manage_event": is_admin(request.user) or is_organizer(request.user),
+        "can_manage_event": event_can_manage,
     }
     return render(request,"event_details.html",context)
 
@@ -407,7 +426,7 @@ def rspv_event(request,event_id):
 
         send_mail(subject,message,settings.EMAIL_HOST_USER,recipient_list)
     
-    return redirect("event-dashboard")
+    return redirect("dashboard")
 
 
 from django.shortcuts import render

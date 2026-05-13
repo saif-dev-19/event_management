@@ -75,6 +75,10 @@
                                     <i class="fas fa-users mr-2 text-purple-300"></i>
                                     <span>{{ event.current_rsvp_count }} / {{ event.capacity }} seats booked</span>
                                 </div>
+                                <div class="flex items-center text-white/80 mb-3">
+                                    <i class="fas fa-user-shield mr-2 text-purple-300"></i>
+                                    <span>Created by {{ event.creator_name }} ({{ event.creator_role }})</span>
+                                </div>
                                 {% if event.description %}
                                     <p class="text-white/70 text-sm line-clamp-2">{{ event.description|truncatewords:15 }}</p>
                                 {% endif %}

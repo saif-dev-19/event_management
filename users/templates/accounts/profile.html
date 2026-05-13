@@ -1,71 +1,113 @@
 {% extends "base.html" %}
 {% load custom_filters %}
+
 {% block title %}Profile{% endblock title %}
+
 {% block content %}
-<div class="bg-gray-100 min-h-screen flex flex-col md:flex-row">
-  
-  <!-- Sidebar -->
-  <aside class="w-full md:w-64 bg-white shadow-md md:min-h-screen">
-    <div class="p-4 border-b">
-      <h2 class="text-xl font-semibold text-gray-800 text-center md:text-left">Menu</h2>
+<div class="min-h-screen py-10">
+  <div class="container mx-auto px-6">
+    <div class="mb-10 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-white mb-3">My Profile</h1>
+      <p class="text-white/80 text-lg">Manage your account details and security from one place.</p>
     </div>
-    <nav class="mt-2 flex md:flex-col justify-around md:justify-start text-sm md:text-base">
-      <a href="#" class="block py-2 px-4 text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md mx-1 md:mx-0 md:my-1 text-center md:text-left">
-        Profile
-      </a>
-      <a href="{% url 'edit_profile' %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-200 rounded-md mx-1 md:mx-0 md:my-1 text-center md:text-left">
-        Edit Profile
-      </a>
-      <a href="{% url 'password_change' %}" class="block py-2 px-4 text-gray-700 hover:bg-gray-200 rounded-md mx-1 md:mx-0 md:my-1 text-center md:text-left">
-        Change Password
-      </a>
-    </nav>
-  </aside>
 
-  <!-- Main Content -->
-  <main class="flex-1 p-4 sm:p-6 md:p-10">
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8 text-center md:text-left">
-      User Profile
-    </h1>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <aside class="lg:col-span-4">
+        <div class="glass-effect rounded-2xl p-8 text-center sticky top-28">
+          <div class="relative mx-auto mb-6 h-36 w-36">
+            <div class="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-300/40 to-pink-300/40 blur-lg"></div>
+            <img
+              src="{{ request.user.profile_image.url }}"
+              alt="User Avatar"
+              class="relative h-36 w-36 rounded-full object-cover border-4 border-white/40 shadow-2xl"
+            />
+          </div>
 
-    <div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
-      <!-- User Header -->
-      <div class="flex flex-col sm:flex-row items-center sm:items-start mb-6 text-center sm:text-left">
-        <img
-          src="{{ profile_image.url }}"
-          alt="User Avatar"
-          class="w-24 h-24 rounded-full object-cover mb-4 sm:mb-0 sm:mr-6 shadow"
-        />
-        <div>
-          <h2 class="text-xl sm:text-2xl font-semibold text-gray-800">{{ name }}</h2>
-          <p class="text-gray-600 text-sm sm:text-base">Software Developer</p>
+          <h2 class="text-2xl font-bold text-white mb-2">
+            {% if name %}{{ name }}{% else %}{{ username }}{% endif %}
+          </h2>
+          <p class="text-white/80 mb-4">@{{ username }}</p>
+          <span class="inline-flex items-center justify-center rounded-full bg-white/10 border border-white/30 px-4 py-2 text-sm font-semibold text-white">
+            <i class="fas fa-user-shield mr-2"></i>{{ group }}
+          </span>
+
+          <div class="mt-8 space-y-3">
+            <a href="{% url 'dashboard' %}" class="flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 px-5 py-3 text-white font-semibold transition-all duration-300">
+              <i class="fas fa-tachometer-alt mr-3"></i>Go to Dashboard
+            </a>
+            <a href="{% url 'edit_profile' %}" class="flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-5 py-3 text-white font-semibold transition-all duration-300">
+              <i class="fas fa-user-edit mr-3"></i>Edit Profile
+            </a>
+            <a href="{% url 'password_change' %}" class="flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 px-5 py-3 text-white font-semibold transition-all duration-300">
+              <i class="fas fa-lock mr-3"></i>Change Password
+            </a>
+          </div>
         </div>
-      </div>
+      </aside>
 
-      <!-- Info Sections -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Personal Info -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Personal Information</h3>
-          <p class="text-gray-600"><span class="font-medium">Email:</span> {{ email }}</p>
-          <p class="text-gray-600"><span class="font-medium">Username:</span> {{ username }}</p>
-          <p class="text-gray-600"><span class="font-medium">Location:</span> New York, USA</p>
+      <section class="lg:col-span-8 space-y-8">
+        <div class="glass-effect rounded-2xl p-8">
+          <div class="flex items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Personal Information</h2>
+              <p class="text-white/70">Your basic profile and contact details.</p>
+            </div>
+            <div class="hidden sm:flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 border border-white/20">
+              <i class="fas fa-id-card text-xl text-white"></i>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="rounded-xl bg-white/10 border border-white/20 p-5">
+              <p class="text-white/60 text-sm mb-1">Full Name</p>
+              <p class="text-white font-semibold">{% if name %}{{ name }}{% else %}Not added yet{% endif %}</p>
+            </div>
+            <div class="rounded-xl bg-white/10 border border-white/20 p-5">
+              <p class="text-white/60 text-sm mb-1">Username</p>
+              <p class="text-white font-semibold">{{ username }}</p>
+            </div>
+            <div class="rounded-xl bg-white/10 border border-white/20 p-5">
+              <p class="text-white/60 text-sm mb-1">Email</p>
+              <p class="text-white font-semibold break-all">{{ email|default:"Not added yet" }}</p>
+            </div>
+            <div class="rounded-xl bg-white/10 border border-white/20 p-5">
+              <p class="text-white/60 text-sm mb-1">Phone Number</p>
+              <p class="text-white font-semibold">{{ number|default:"Not added yet" }}</p>
+            </div>
+          </div>
         </div>
 
-        <!-- Account Info -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Account Information</h3>
-          <p class="text-gray-600"><span class="font-medium">Member Since:</span> {{ member_since|humanized_date }}</p>
-          <p class="text-gray-600"><span class="font-medium">Last Login:</span> {{ last_login|humanized_date }}</p>
-        </div>
-      </div>
+        <div class="glass-effect rounded-2xl p-8">
+          <div class="flex items-center justify-between gap-4 mb-6">
+            <div>
+              <h2 class="text-2xl font-bold text-white">Account Activity</h2>
+              <p class="text-white/70">Useful account history and access information.</p>
+            </div>
+            <div class="hidden sm:flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 border border-white/20">
+              <i class="fas fa-clock text-xl text-white"></i>
+            </div>
+          </div>
 
-      <!-- Contact -->
-      <div class="mt-6">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2 border-b pb-1">Contact</h3>
-        <p class="text-gray-600">{{ number }}</p>
-      </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="rounded-xl bg-white/10 border border-white/20 p-5">
+              <p class="text-white/60 text-sm mb-1">Member Since</p>
+              <p class="text-white font-semibold">{{ member_since|humanized_date }}</p>
+            </div>
+            <div class="rounded-xl bg-white/10 border border-white/20 p-5">
+              <p class="text-white/60 text-sm mb-1">Last Login</p>
+              <p class="text-white font-semibold">{{ last_login|humanized_date }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-effect rounded-2xl p-8">
+          <h2 class="text-2xl font-bold text-white mb-3">Profile Tips</h2>
+          <p class="text-white/80">
+            Keep your email and profile image updated so organizers and admins can identify your activity clearly across dashboards.
+          </p>
+        </div>
+      </section>
     </div>
-  </main>
+  </div>
 </div>
 {% endblock content %}

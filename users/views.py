@@ -36,6 +36,7 @@ class ProfileView(TemplateView):
         context['profile_image'] = user.profile_image
         context['member_since'] = user.date_joined
         context['last_login'] = user.last_login
+        context['group'] = user.groups.first().name if user.groups.exists() else "No Group Assigned"
 
         return context
     
@@ -87,7 +88,7 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         return super().form_valid(form)
 
 def is_admin(user):
-    return user.groups.filter(name ='Admin').exists()
+    return user.is_superuser or user.groups.filter(name ='Admin').exists()
 
 def is_organizer(user):
     return user.groups.filter(name='Organizer').exists()
@@ -169,7 +170,7 @@ def admin_dashboard(request):
             group.group_name = "No Group Assigned"
 
     cr_day = datetime.now().date()
-    events = Event.objects.prefetch_related('participants', 'rspv').all()
+    events = Event.objects.select_related('created_by', 'category').prefetch_related('participants', 'rspv', 'created_by__groups').all()
     participant = Participant.objects.all()
     print(participant)
 

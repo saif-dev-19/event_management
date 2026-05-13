@@ -90,6 +90,10 @@
                                         <i class="fas fa-users mr-2 text-purple-300"></i>
                                         <span>{{ event.rsvp_count }} / {{ event.capacity }} seats booked</span>
                                     </div>
+                                    <div class="flex items-center text-white/80 mt-3">
+                                        <i class="fas fa-user-shield mr-2 text-purple-300"></i>
+                                        <span>Created by {{ event.creator_name }} ({{ event.creator_role }})</span>
+                                    </div>
                                     <div class="mt-4">
                                         <h4 class="text-white font-semibold mb-2">RSVP Participants</h4>
                                         {% if event.rspv.all %}
