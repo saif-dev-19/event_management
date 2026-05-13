@@ -98,14 +98,14 @@
                                             <button
                                                 type="submit"
                                                 {% if event.has_rsvped %}
-                                                disabled class="bg-gray-400 cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold"
+                                                disabled class="bg-gray-700 cursor-not-allowed text-gray-400 px-6 py-3 rounded-lg font-semibold"
                                                 {% elif event.is_at_capacity %}
-                                                disabled class="bg-gray-500 cursor-not-allowed text-white px-6 py-3 rounded-lg font-semibold"
+                                                disabled class="bg-gray-700 cursor-not-allowed text-gray-400  px-6 py-3 rounded-lg font-semibold"
                                                 {% else %}
                                                 class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 flex items-center"{% endif %}
                                             >
-                                                <i class="fas fa-calendar-check mr-2"></i>
-                                                {% if event.has_rsvped %}Already RSVP{% elif event.is_at_capacity %}Full{% else %}RSVP{% endif %}
+                                                <i class="fas fa-calendar-check mr-2 "></i>
+                                                {% if event.has_rsvped %}Already Joined{% elif event.is_at_capacity %}Full{% else %}Join{% endif %}
                                             </button>
                                                 </form>
                                             {% else %}
