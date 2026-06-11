@@ -41,6 +41,7 @@ class ProfileView(TemplateView):
         return context
     
 
+  
 class EditProfileView(UpdateView):
     model = User
     form_class = EditProfileForm
